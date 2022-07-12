@@ -1,0 +1,10 @@
+exports_files([
+    "helm.bzl",
+    "repo.bzl",
+    "providers.bzl",
+])
+
+toolchain_type(
+    name = "toolchain_type",
+    visibility = ["//visibility:public"],
+)
