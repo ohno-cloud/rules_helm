@@ -1,10 +1,28 @@
 # `helm_rules`
 
+This set of rules are made with using `rules_jsonnet` in mind.
+
+Mostly so jsonnet can be used to make modications to a templated helm chart.
+
+Deploying helm charts to repositories or to a kubernetes cluster is not the goal of these rules.
+
 ## Rules
 
  * `helm_chart` - Basic wrapper around files to become a "Helm Chart"
  * `helm_repo_chart` - Pulls a chart from a repository & validates it with sha256
  * `helm_template` - Templates the chart with a given set of `values.yaml`
+
+## Todo
+
+ - [x] Toolchains
+    - [ ] Even more of them (arm, Windows, etc.)
+    - [ ] Generate the version matrix from Helm's release page
+ - [x] Pull external helm charts
+     - [ ] Using a repositorie's `index.yaml`
+ - [ ] Docs
+ - [ ] Tests
+ - [ ] Working examples
+ - [ ] Clean up code
 
 ## Examples
 
@@ -14,9 +32,9 @@
 
 http_archive(
     name = "rules_helm",
-    sha256 = "< curl -L url | sha256sum | cut -d' ' -f1 >",
-    strip_prefix = "rules_helm-<COMMIT SHA>",
-    urls = ["https://github.com/dbanetto/rules_helm/archive/<COMMIT SHA>.tar.gz"],
+    sha256 = "e302a4dd629315ae2457fef72d3d040188b72e693d9fe60a1d284934186d1168",
+    strip_prefix = "rules_helm-6078980f67147a338fc62a28f58964e1c24113ec",
+    urls = ["https://github.com/dbanetto/rules_helm/archive/6078980f67147a338fc62a28f58964e1c24113ec.tar.gz"],
 )
 
 load("@helm_rules//:repo.bzl", "helm_repositories")
