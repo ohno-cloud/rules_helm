@@ -73,7 +73,7 @@ _helm_repo_chart_attrs = {
         default = {},
     ),
     "_build_tpl": attr.label(
-        default = "//tools/helm_rules:repo.BUILD.bazel.tpl",
+        default = "@rules_helm//:repo.BUILD.bazel.tpl",
     ),
 }
 

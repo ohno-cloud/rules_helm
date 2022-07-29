@@ -3,7 +3,7 @@ load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 _VERSION = "v3.9.0"
 
 _BUILD_FILE_CONTENT = """
-load("@//tools/helm_rules:helm.bzl", "helm_toolchain")
+load("@rules_helm//:helm.bzl", "helm_toolchain")
 package(default_visibility = ["//visibility:public"])
 
 filegroup(
@@ -27,7 +27,7 @@ toolchain(
         "@platforms//cpu:{bazel_cpu}",
     ],
     toolchain = ":helm_tools",
-    toolchain_type = "@helm_rules//:toolchain_type",
+    toolchain_type = "@rules_helm//:toolchain_type",
 )
 """
 
