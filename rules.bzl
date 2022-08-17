@@ -9,7 +9,6 @@ def _helm_repo_chart(ctx):
     file_name = "{chart}-{version}.tgz".format(
         chart=ctx.attr.chart,
         version=ctx.attr.version,
-        suffix=ctx.attr.chart_suffix,
     )
     # If `urls` are not given get some from the repository
     if len(urls) == 0:
@@ -61,11 +60,6 @@ _helm_repo_chart_attrs = {
     "sha256": attr.string(
         doc = "A SHA256 of the chart file.",
         mandatory = True,
-    ),
-    "chart_suffix": attr.string(
-        doc = "A suffix that is added by the upstream repo to the chart name.",
-        mandatory = False,
-        default = "",
     ),
     "auth": attr.string_dict(
         doc = "An optional dict specifying authentication information for some of the URLs.",
@@ -125,20 +119,26 @@ def _helm_template_impl(ctx):
     chart_path = ctx.attr.chart[DefaultInfo].files.to_list()[0].path
     suffix = hash("-".join([ctx.label.name, info.version]))
 
-    output_name = "manifests-{}.yaml".format(suffix)
+    output_name = "manifests-{}-{}.yaml".format(ctx.label.name, suffix)
     manifests = ctx.actions.declare_file(output_name)
+
+    generate_name = ctx.label.name
+    if ctx.attr.generate_name != "":
+        generate_name = ctx.attr.generate_name
 
     args = [
         "template",
+        generate_name,
+        "./" + chart_path,
         "--namespace",
         ctx.attr.namespace,
-        ctx.label.name,
     ]
+
+    if ctx.attr.include_crds:
+        args.append("--include-crds")
 
     for value in ctx.attr.values.files.to_list():
         args.extend(["--values", value.path])
-
-    args.append("./" + chart_path)
 
     inputs = depset(
         [helm.executable] +
@@ -173,9 +173,18 @@ _helm_template_attrs = {
         providers = [HelmChartInfo],
         allow_single_file = True,
     ),
+    "generate_name": attr.string(
+        doc = "Sets the generation name used by helm - if not set uses label name instead.",
+        mandatory = False,
+    ),
     "values": attr.label(
         doc = "A set of values to be used to template from.",
         allow_single_file = True,
+    ),
+    "include_crds": attr.bool(
+        doc = "Sets the --include-crds flag.",
+        mandatory = False,
+        default = False,
     ),
     "namespace": attr.string(
         doc = "Namespace to be set to.",
