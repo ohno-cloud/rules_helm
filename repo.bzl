@@ -6,14 +6,9 @@ _BUILD_FILE_CONTENT = """
 load("@rules_helm//:helm.bzl", "helm_toolchain")
 package(default_visibility = ["//visibility:public"])
 
-filegroup(
-    name = "bin",
-    srcs = ["helm"],
-)
-
 helm_toolchain(
     name = "helm_tools",
-    src = ":bin",
+    src = ":helm",
 )
 
 toolchain(
@@ -31,7 +26,7 @@ toolchain(
 )
 """
 
-def helm_repositories(register_toolchains):
+def helm_register_toolchains():
     for helm in [
     {
         "os": "linux",
@@ -66,5 +61,5 @@ def helm_repositories(register_toolchains):
             ),
         )
 
-        register_toolchains("@sh_helm_get_{os}_{cpu}//:toolchain".format(os=helm['os'], cpu=helm['cpu']))
+        native.register_toolchains("@sh_helm_get_{os}_{cpu}//:toolchain".format(os=helm['os'], cpu=helm['cpu']))
 

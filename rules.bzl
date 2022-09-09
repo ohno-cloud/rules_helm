@@ -67,7 +67,7 @@ _helm_repo_chart_attrs = {
         default = {},
     ),
     "_build_tpl": attr.label(
-        default = "@rules_helm//:repo.BUILD.bazel.tpl",
+        default = "//:repo.BUILD.bazel.tpl",
     ),
 }
 
@@ -111,7 +111,7 @@ helm_chart = rule(
 # ==============================================================================
 
 def _helm_template_impl(ctx):
-    toolchain = ctx.toolchains["@rules_helm//:toolchain_type"]
+    toolchain = ctx.toolchains["//:toolchain_type"]
 
     # Setup
     helm = toolchain.helm.tool[DefaultInfo].files_to_run
@@ -196,6 +196,6 @@ helm_template = rule(
     attrs = dict(
         _helm_template_attrs.items()
     ),
-    toolchains = ["@rules_helm//:toolchain_type"]
+    toolchains = ["//:toolchain_type"]
 )
 
