@@ -120,6 +120,8 @@ def _helm_template_impl(ctx):
     suffix = hash("-".join([ctx.label.name, info.version]))
 
     output_name = "manifests-{}-{}.yaml".format(ctx.label.name, suffix)
+    if ctx.attr.out:
+        output_name = ctx.attr.out
     manifests = ctx.actions.declare_file(output_name)
 
     generate_name = ctx.label.name
@@ -162,10 +164,7 @@ def _helm_template_impl(ctx):
         outputs = outputs,
         arguments = args,
     )
-
-    return [DefaultInfo(
-        files = depset(outputs),
-    )]
+    return [DefaultInfo(files = depset(outputs))]
 
 _helm_template_attrs = {
     "chart": attr.label(
@@ -175,6 +174,10 @@ _helm_template_attrs = {
     ),
     "generate_name": attr.string(
         doc = "Sets the generation name used by helm - if not set uses label name instead.",
+        mandatory = False,
+    ),
+    "out": attr.string(
+        doc = "The name of the output manifest file.",
         mandatory = False,
     ),
     "values": attr.label(

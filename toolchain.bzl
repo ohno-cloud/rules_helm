@@ -14,7 +14,7 @@ helm_toolchain = rule(
     attrs = {
         "src": attr.label(
             doc = "The helm binary",
-            cfg = "host",
+            cfg = "exec",
             executable = True,
             allow_single_file = True,
         ),
