@@ -12,7 +12,7 @@ helm_toolchain(
 )
 """
 
-def helm_register_toolchains(name="sh_helm_get", version="3.10.2"):
+def helm_register_toolchains(name="sh_helm_get", version="3.10.2", register = True):
     current_version = VERSIONS[version]
     for platform in current_version:
         settings = current_version[platform]
@@ -23,8 +23,8 @@ def helm_register_toolchains(name="sh_helm_get", version="3.10.2"):
             strip_prefix = platform,
             build_file_content = _BUILD_FILE_CONTENT,
         )
-
-        native.register_toolchains("@{}_toolchains//:{}_toolchain".format(name, platform))
+        if register:
+            native.register_toolchains("@{}_toolchains//:{}_toolchain".format(name, platform))
 
     toolchains_repo(
         name = name + "_toolchains",

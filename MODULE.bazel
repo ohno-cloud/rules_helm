@@ -1,0 +1,13 @@
+module (
+    name = "rules_helm",
+    version = "0.2.0",
+    compatibility_level = 1,
+)
+
+bazel_dep(name = "platforms", version = "0.0.7")
+
+helm_configure = use_extension("@rules_helm//:extensions.bzl", "helm_configure")
+
+use_repo(helm_configure, "sh_helm_get_toolchains")
+
+register_toolchains("@sh_helm_get_toolchains//:all")
