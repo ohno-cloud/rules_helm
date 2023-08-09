@@ -12,7 +12,7 @@ helm_toolchain(
 )
 """
 
-def helm_register_toolchains(name="sh_helm_get", version="3.10.2"):
+def helm_register_toolchains(name="sh_helm_get", version="3.12.2"):
     current_version = VERSIONS[version]
     for platform in current_version:
         settings = current_version[platform]
