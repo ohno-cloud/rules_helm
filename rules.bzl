@@ -139,6 +139,11 @@ def _helm_template_impl(ctx):
     if ctx.attr.include_crds:
         args.append("--include-crds")
 
+    if ctx.attr.skip_tests:
+        args.append("--skip-tests")
+
+    args.extend(ctx.attr.arguments)
+
     for value in ctx.attr.values.files.to_list():
         args.extend(["--values", value.path])
 
@@ -171,6 +176,7 @@ _helm_template_attrs = {
         doc = "A helm chart to template.",
         providers = [HelmChartInfo],
         allow_single_file = True,
+        mandatory = True,
     ),
     "generate_name": attr.string(
         doc = "Sets the generation name used by helm - if not set uses label name instead.",
@@ -189,9 +195,19 @@ _helm_template_attrs = {
         mandatory = False,
         default = False,
     ),
+    "skip_tests": attr.bool(
+        doc = "Sets the --skip-tests flag.",
+        mandatory = False,
+        default = True,
+    ),
     "namespace": attr.string(
         doc = "Namespace to be set to.",
+        mandatory = True,
     ),
+    "arguments": attr.string_list(
+        doc = "Additional arguments to be passed to helm template.",
+        mandatory = False,
+    )
 }
 
 helm_template = rule(
