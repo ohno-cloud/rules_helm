@@ -1,0 +1,9 @@
+{
+  "dependencies": [
+    { 
+      name: "nginx",
+      version: "1.2.3",
+      repository: "https://example.com/charts"
+    }
+  ]
+}
