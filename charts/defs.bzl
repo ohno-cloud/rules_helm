@@ -1,4 +1,4 @@
-load("@bazel_skylib//rules:diff_test.bzl", "diff_test")
+load("@aspect_bazel_lib//lib:write_source_files.bzl", "write_source_files")
 
 def _generate_lockfile(ctx):
     output_file = ctx.actions.declare_file(ctx.label.name + ".lock.json")
@@ -40,9 +40,9 @@ def lockfile(name, chart_file, lock_file):
         chartfile=chart_file
     )
 
-    diff_test(
-        name=name + ".test",
-        file1=lock_file,
-        file2=":"+name,
-        failure_message="Diff detected, regenerate lock file",
+    write_source_files(
+        name = name + ".update",
+        files = {
+            lock_file: ":" + name,
+        },
     )
