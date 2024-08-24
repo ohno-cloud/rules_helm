@@ -1,0 +1,28 @@
+load("@rules_helm//:helm.bzl", "helm_template")
+
+helm_template(
+    name = "alertmanager_1_11_0",
+    chart = "@io_github_prometheus_community_alertmanager_1_11_0//:chart",
+    generate_name = "example",
+    include_crds = True,
+    namespace = "example",
+    values = ":values.json",
+)
+
+helm_template(
+    name = "alertmanager_1_12_0",
+    chart = "@io_github_prometheus_community_alertmanager_1_12_0//:chart",
+    generate_name = "example",
+    include_crds = True,
+    namespace = "example",
+    values = ":values.json",
+)
+
+helm_template(
+    name = "alertmanager_manual",
+    chart = "@manual_chart_alertmanager//:chart",
+    generate_name = "example",
+    include_crds = True,
+    namespace = "example",
+    values = ":values.json",
+)

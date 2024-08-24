@@ -18,14 +18,15 @@ Deploying helm charts to repositories or to a kubernetes cluster is not the goal
     - [ ] Even more of them (arm, Windows, etc.)
     - [ ] Generate the version matrix from Helm's release page
  - [x] Pull external helm charts
-     - [ ] Using a repositorie's `index.yaml`
+     - [x] Using a repositorie's `index.yaml`
  - [ ] Docs
  - [ ] Tests
- - [ ] Working examples
+ - [x] Working examples
  - [ ] Clean up code
 
 ## Examples
 
+For a Bazel MODULE example have a look in the [examples](./examples) folder.
 
 ```starlark
 # WORKSPACE

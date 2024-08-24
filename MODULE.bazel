@@ -1,13 +1,32 @@
 module (
     name = "rules_helm",
-    version = "0.2.0",
+    version = "0.3.0",
     compatibility_level = 1,
 )
 
-bazel_dep(name = "platforms", version = "0.0.7")
+bazel_dep(name = "platforms", version = "0.0.10")
+bazel_dep(name = "rules_go", version = "0.49.0")
+bazel_dep(name = "aspect_bazel_lib", version = "2.5.2")
+bazel_dep(name = "bazel_skylib", version = "1.7.1")
+
+# Dev depdencies
+bazel_dep(name = "gazelle", version = "0.38.0")
+bazel_dep(name = "bazel_skylib_gazelle_plugin", version = "1.7.1", dev_dependency = True)
 
 helm_configure = use_extension("@rules_helm//:extensions.bzl", "helm_configure")
 
 use_repo(helm_configure, "sh_helm_get_toolchains")
 
 register_toolchains("@sh_helm_get_toolchains//:all")
+
+# ========================================================================
+# Go Lang
+# ========================================================================
+go_deps = use_extension("@gazelle//:extensions.bzl", "go_deps")
+go_deps.from_file(go_mod = "//:go.mod")
+
+# All *direct* Go dependencies of the module have to be listed explicitly.
+use_repo(
+    go_deps,
+    "in_gopkg_yaml_v3",
+)

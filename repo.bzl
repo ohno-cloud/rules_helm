@@ -1,6 +1,6 @@
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
-load("//:private/versions.bzl", "VERSIONS")
-load("//:private/toolchain_repo.bzl", "toolchains_repo")
+load("//private:versions.bzl", "VERSIONS")
+load("//private:toolchain_repo.bzl", "toolchains_repo")
 
 _BUILD_FILE_CONTENT = """
 load("@rules_helm//:helm.bzl", "helm_toolchain")
@@ -12,7 +12,7 @@ helm_toolchain(
 )
 """
 
-def helm_register_toolchains(name="sh_helm_get", version="3.14.4", register = True):
+def helm_register_toolchains(name="sh_helm_get", version="3.15.4", register = True):
     current_version = VERSIONS[version]
     for platform in current_version:
         settings = current_version[platform]

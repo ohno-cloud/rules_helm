@@ -1,0 +1,29 @@
+module (
+    name = "rules_helm_examples",
+    version = "0.0.0",
+    compatibility_level = 1,
+)
+
+bazel_dep(name = "rules_helm", version = "0.0.0")
+
+local_path_override( module_name = "rules_helm" , path = "../")
+
+helm_deps = use_extension("@rules_helm//:extensions.bzl", "helm_deps")
+helm_deps.lockfile(lockfile="//:Chart.lock.json")
+
+helm_deps.chart(
+    name = "manual_chart_alertmanager",
+    chart = "alertmanager",
+    version = "1.12.0",
+    urls = [
+        "https://github.com/prometheus-community/helm-charts/releases/download/alertmanager-1.12.0/alertmanager-1.12.0.tgz"
+    ],
+    digest = "777093e540d84fc7cd32e22bf37cefe1b11fac19f9a593db591a6059ee5a30ba",
+)
+
+use_repo(
+    helm_deps,
+    "io_github_prometheus_community_alertmanager_1_11_0",
+    "io_github_prometheus_community_alertmanager_1_12_0",
+    "manual_chart_alertmanager",
+)

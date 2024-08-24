@@ -1,3 +1,6 @@
+load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
+load("@gazelle//:def.bzl", "DEFAULT_LANGUAGES", "gazelle", "gazelle_binary")
+
 exports_files([
     "helm.bzl",
     "repo.bzl",
@@ -6,5 +9,63 @@ exports_files([
 
 toolchain_type(
     name = "toolchain_type",
+    visibility = ["//visibility:public"],
+)
+
+gazelle_binary(
+    name = "gazelle-all",
+    languages = DEFAULT_LANGUAGES + [
+        "@bazel_skylib_gazelle_plugin//bzl",
+    ],
+)
+
+# gazelle:proto package
+gazelle(
+    name = "gazelle",
+    gazelle = ":gazelle-all",
+)
+
+bzl_library(
+    name = "extensions",
+    srcs = ["extensions.bzl"],
+    visibility = ["//visibility:public"],
+    deps = [":repo"],
+)
+
+bzl_library(
+    name = "helm",
+    srcs = ["helm.bzl"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":providers",
+        ":rules",
+        ":toolchain",
+    ],
+)
+
+bzl_library(
+    name = "repo",
+    srcs = ["repo.bzl"],
+    visibility = ["//visibility:public"],
+    deps = ["@bazel_tools//tools/build_defs/repo:http.bzl"],
+)
+
+bzl_library(
+    name = "rules",
+    srcs = ["rules.bzl"],
+    visibility = ["//visibility:public"],
+    deps = [":providers"],
+)
+
+bzl_library(
+    name = "toolchain",
+    srcs = ["toolchain.bzl"],
+    visibility = ["//visibility:public"],
+    deps = [":providers"],
+)
+
+bzl_library(
+    name = "providers",
+    srcs = ["providers.bzl"],
     visibility = ["//visibility:public"],
 )
