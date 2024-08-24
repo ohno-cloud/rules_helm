@@ -1,6 +1,6 @@
-module (
+module(
     name = "rules_helm",
-    version = "0.3.0",
+    version = "0.4.0",
     compatibility_level = 1,
 )
 
@@ -11,10 +11,10 @@ bazel_dep(name = "bazel_skylib", version = "1.7.1")
 
 # Dev depdencies
 bazel_dep(name = "gazelle", version = "0.38.0")
+
 bazel_dep(name = "bazel_skylib_gazelle_plugin", version = "1.7.1", dev_dependency = True)
 
 helm_configure = use_extension("@rules_helm//:extensions.bzl", "helm_configure")
-
 use_repo(helm_configure, "sh_helm_get_toolchains")
 
 register_toolchains("@sh_helm_get_toolchains//:all")

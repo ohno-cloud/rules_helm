@@ -97,7 +97,7 @@
     "//:extensions.bzl%helm_configure": {
       "general": {
         "bzlTransitiveDigest": "5WHVYeMU+0nJrbsOcrBELhTODpa3D3jpjL+QPKG+sYE=",
-        "usagesDigest": "y68L99sBdxq/H8JhmJxcFIYLBStQwOT0Dz4sM34Zr7Q=",
+        "usagesDigest": "yL+gOE96ztmUtDkcfMLtN7wTndLgurXbvfl+tRBKI14=",
         "recordedFileInputs": {},
         "recordedDirentsInputs": {},
         "envVariables": {},
