@@ -5,14 +5,14 @@ def _generate_lockfile(ctx):
 
     args = ctx.actions.args()
 
-    args.add_all("-chart", ctx.files.chartfile)
+    args.add_all("-chart", ctx.files.charts_file)
     args.add("-output", output_file)
 
     ctx.actions.run(
         mnemonic = "HelmLockFile",
         executable = ctx.executable._helmlock,
         arguments = [args],
-        inputs = ctx.files.chartfile,
+        inputs = ctx.files.charts_file,
         outputs = [output_file],
     )
 
@@ -23,7 +23,7 @@ def _generate_lockfile(ctx):
 generate_lockfile = rule(
     implementation = _generate_lockfile,
     attrs = {
-        "chartfile": attr.label(allow_files = [".yaml"]),
+        "charts_file": attr.label(allow_files = [".yaml"]),
         "_helmlock": attr.label(
             executable=True,
             cfg = "exec",
@@ -33,11 +33,16 @@ generate_lockfile = rule(
 )
 
 
-def lockfile(name, chart_file, lock_file):
+def helm_lock_file(name, charts_file, lock_file):
 
     generate_lockfile(
         name=name,
-        chartfile=chart_file
+        charts_file=charts_file,
+        tags = [
+            "requires-network",
+            "no-remote-exec",
+            "no-sandbox",
+        ],
     )
 
     write_source_files(

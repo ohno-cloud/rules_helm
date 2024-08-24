@@ -7,8 +7,10 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"os"
 	"slices"
+	"strings"
 
 	"gopkg.in/yaml.v3"
 )
@@ -33,8 +35,10 @@ type Lockfile struct {
 }
 
 type LockEntry struct {
-	Digest string   `yaml:"digest" json:"digest"`
-	Urls   []string `yaml:"urls" json:"urls"`
+	Digest  string   `yaml:"digest" json:"digest"`
+	Urls    []string `yaml:"urls" json:"urls"`
+	Chart   string   `yaml:"chart" json:"chart"`
+	Version string   `yaml:"version" json:"version"`
 }
 
 type RepositoryIndex struct {
@@ -64,25 +68,26 @@ func main() {
 	buf, err := io.ReadAll(file)
 	if err != nil {
 		fmt.Printf("failed read file: %s", err)
-		os.Exit(1)
+		os.Exit(2)
 	}
 
 	var chart Chart
 	if err = yaml.Unmarshal(buf, &chart); err != nil {
 		fmt.Printf("failed unmarshal file: %s", err)
-		os.Exit(1)
+		os.Exit(3)
 	}
 
 	lock, err := chart.GenerateLockFile(context.Background(), http.DefaultClient)
 	if err != nil {
 		fmt.Printf("failed to generate lock file: %s", err)
-		os.Exit(1)
+		fmt.Fprintf(os.Stderr, "failed to generate lock file: %s", err)
+		os.Exit(4)
 	}
 
 	lockBuf, err := json.Marshal(lock)
 	if err != nil {
 		fmt.Printf("failed to marshal lock file to json: %s", err)
-		os.Exit(1)
+		os.Exit(5)
 	}
 
 	if *outputFile == "" {
@@ -91,13 +96,13 @@ func main() {
 		out, err := os.OpenFile(*outputFile, os.O_WRONLY|os.O_TRUNC|os.O_CREATE, 0666)
 		if err != nil {
 			fmt.Printf("failed to open output file (%s): %s", *outputFile, err)
-			os.Exit(1)
+			os.Exit(6)
 		}
 		defer out.Close()
 
 		if _, err = out.Write(lockBuf); err != nil {
 			fmt.Printf("failed to write to output file (%s): %s", *outputFile, err)
-			os.Exit(1)
+			os.Exit(7)
 		}
 	}
 }
@@ -135,7 +140,7 @@ func (c *Chart) GenerateLockFile(ctx context.Context, client *http.Client) (*Loc
 	for repo, wantCharts := range wants {
 		req, err := http.NewRequestWithContext(ctx, http.MethodGet, fmt.Sprintf("%s/index.yaml", repo), nil)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("failed request from repo %s: %w", repo, err)
 		}
 
 		res, err := client.Do(req)
@@ -149,14 +154,14 @@ func (c *Chart) GenerateLockFile(ctx context.Context, client *http.Client) (*Loc
 			return nil, err
 		}
 
-		var repo RepositoryIndex
-		if err = yaml.Unmarshal(buf, &repo); err != nil {
+		var repoIndex RepositoryIndex
+		if err = yaml.Unmarshal(buf, &repoIndex); err != nil {
 			return nil, err
 		}
 
 		foundCharts := map[string]bool{}
 
-		for chart, chartVersions := range repo.Entries {
+		for chart, chartVersions := range repoIndex.Entries {
 			foundVersions := map[string]bool{}
 			// Filter out chart entries we're not after
 			if wantVersions, ok := wantCharts[chart]; ok {
@@ -166,19 +171,20 @@ func (c *Chart) GenerateLockFile(ctx context.Context, client *http.Client) (*Loc
 					if slices.Contains(wantVersions, version.Version) {
 						var lockName string
 						if len(wantVersions) > 1 {
-							lockName = fmt.Sprintf("%s_%s", chart, version.Version)
+							lockName = bzlRepoName(repo, chart, version.Version)
 						} else {
-							lockName = fmt.Sprintf("%s", chart)
+							lockName = bzlRepoName(repo, chart, "")
 						}
 
 						lock.Repositories[lockName] = LockEntry{
-							Digest: version.Digest,
-							Urls:   version.Urls,
+							Chart:   chart,
+							Version: version.Version,
+							Digest:  version.Digest,
+							Urls:    checkUrls(repo, version.Urls),
 						}
 
 						foundVersions[version.Version] = true
 					}
-
 				}
 
 				if len(foundVersions) != len(wantVersions) {
@@ -189,9 +195,45 @@ func (c *Chart) GenerateLockFile(ctx context.Context, client *http.Client) (*Loc
 		}
 
 		if len(foundCharts) != len(wantCharts) {
-			return nil, fmt.Errorf("did not find all charts for repository %s, found %v", repo, foundCharts)
+			return nil, fmt.Errorf("did not find all charts for repository %s, found %v", repoIndex, foundCharts)
 		}
 	}
 
 	return &lock, nil
+}
+
+func bzlRepoName(repo, chartName, version string) string {
+	segments := make([]string, 0)
+
+	repoUrl, err := url.Parse(repo)
+	if err == nil {
+		hostname := strings.ReplaceAll(repoUrl.Hostname(), "-", "_")
+		parts := strings.Split(hostname, ".")
+		slices.Reverse(parts)
+		segments = append(segments, parts...)
+	}
+
+	segments = append(segments, strings.Split(chartName, "-")...)
+
+	if version != "" {
+		segments = append(segments, strings.Split(version, ".")...)
+	}
+
+	return strings.Join(segments, "_")
+}
+
+func checkUrls(repo string, urls []string) []string {
+	checked := make([]string, len(urls))
+
+	for idx, url := range urls {
+		// Relative paths
+		if strings.HasPrefix("/", url) {
+			checked[idx] = fmt.Sprintf("%s%s", repo, url)
+		} else if strings.HasPrefix(strings.ToLower(url), "http") {
+			checked[idx] = url
+		} else {
+			checked[idx] = fmt.Sprintf("%s/%s", repo, url)
+		}
+	}
+	return checked
 }

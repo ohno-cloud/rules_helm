@@ -23,12 +23,8 @@
     "https://bcr.bazel.build/modules/bazel_skylib/1.6.1/MODULE.bazel": "8fdee2dbaace6c252131c00e1de4b165dc65af02ea278476187765e1a617b917",
     "https://bcr.bazel.build/modules/bazel_skylib/1.7.1/MODULE.bazel": "3120d80c5861aa616222ec015332e5f8d3171e062e3e804a2a0253e1be26e59b",
     "https://bcr.bazel.build/modules/bazel_skylib/1.7.1/source.json": "f121b43eeefc7c29efbd51b83d08631e2347297c95aac9764a701f2a6a2bb953",
-    "https://bcr.bazel.build/modules/bazel_skylib_gazelle_plugin/1.7.1/MODULE.bazel": "c76b9d256c77c31754c5ac306d395fd47946d8d7470bea2474c3add17b334c3d",
-    "https://bcr.bazel.build/modules/bazel_skylib_gazelle_plugin/1.7.1/source.json": "25a87991a554369633d706f924f67ca3eb4d9200af1bba7e57dceb85eb9198e4",
     "https://bcr.bazel.build/modules/buildozer/7.1.2/MODULE.bazel": "2e8dd40ede9c454042645fd8d8d0cd1527966aa5c919de86661e62953cd73d84",
     "https://bcr.bazel.build/modules/buildozer/7.1.2/source.json": "c9028a501d2db85793a6996205c8de120944f50a0d570438fcae0457a5f9d1f8",
-    "https://bcr.bazel.build/modules/gazelle/0.27.0/MODULE.bazel": "3446abd608295de6d90b4a8a118ed64a9ce11dcb3dda2dc3290a22056bd20996",
-    "https://bcr.bazel.build/modules/gazelle/0.29.0/MODULE.bazel": "a8c809839caeb52995de3f46bbc60cfd327fadfdbfa9f19ee297c8bc8500be45",
     "https://bcr.bazel.build/modules/gazelle/0.32.0/MODULE.bazel": "b499f58a5d0d3537f3cf5b76d8ada18242f64ec474d8391247438bf04f58c7b8",
     "https://bcr.bazel.build/modules/gazelle/0.33.0/MODULE.bazel": "a13a0f279b462b784fb8dd52a4074526c4a2afe70e114c7d09066097a46b3350",
     "https://bcr.bazel.build/modules/gazelle/0.34.0/MODULE.bazel": "abdd8ce4d70978933209db92e436deb3a8b737859e9354fb5fd11fb5c2004c8a",
@@ -55,8 +51,6 @@
     "https://bcr.bazel.build/modules/rules_cc/0.0.8/MODULE.bazel": "964c85c82cfeb6f3855e6a07054fdb159aced38e99a5eecf7bce9d53990afa3e",
     "https://bcr.bazel.build/modules/rules_cc/0.0.9/MODULE.bazel": "836e76439f354b89afe6a911a7adf59a6b2518fafb174483ad78a2a2fde7b1c5",
     "https://bcr.bazel.build/modules/rules_cc/0.0.9/source.json": "1f1ba6fea244b616de4a554a0f4983c91a9301640c8fe0dd1d410254115c8430",
-    "https://bcr.bazel.build/modules/rules_go/0.33.0/MODULE.bazel": "a2b11b64cd24bf94f57454f53288a5dacfe6cb86453eee7761b7637728c1910c",
-    "https://bcr.bazel.build/modules/rules_go/0.37.0/MODULE.bazel": "7639dae065f071efebbe73c03dc8330c3293206cf073af7c7084add4e0120aba",
     "https://bcr.bazel.build/modules/rules_go/0.41.0/MODULE.bazel": "55861d8e8bb0e62cbd2896f60ff303f62ffcb0eddb74ecb0e5c0cbe36fc292c8",
     "https://bcr.bazel.build/modules/rules_go/0.42.0/MODULE.bazel": "8cfa875b9aa8c6fce2b2e5925e73c1388173ea3c32a0db4d2b4804b453c14270",
     "https://bcr.bazel.build/modules/rules_go/0.46.0/MODULE.bazel": "3477df8bdcc49e698b9d25f734c4f3a9f5931ff34ee48a2c662be168f5f2d3fd",
@@ -94,79 +88,6 @@
   },
   "selectedYankedVersions": {},
   "moduleExtensions": {
-    "//:extensions.bzl%helm_configure": {
-      "general": {
-        "bzlTransitiveDigest": "5WHVYeMU+0nJrbsOcrBELhTODpa3D3jpjL+QPKG+sYE=",
-        "usagesDigest": "y68L99sBdxq/H8JhmJxcFIYLBStQwOT0Dz4sM34Zr7Q=",
-        "recordedFileInputs": {},
-        "recordedDirentsInputs": {},
-        "envVariables": {},
-        "generatedRepoSpecs": {
-          "sh_helm_get_linux-arm64": {
-            "bzlFile": "@@bazel_tools//tools/build_defs/repo:http.bzl",
-            "ruleClassName": "http_archive",
-            "attributes": {
-              "sha256": "113ccc53b7c57c2aba0cd0aa560b5500841b18b5210d78641acfddc53dac8ab2",
-              "urls": [
-                "https://get.helm.sh/helm-v3.15.4-linux-amd64.tar.gz"
-              ],
-              "strip_prefix": "linux-arm64",
-              "build_file_content": "\nload(\"@rules_helm//:helm.bzl\", \"helm_toolchain\")\npackage(default_visibility = [\"//visibility:public\"])\n\nhelm_toolchain(\n    name = \"helm_tools\",\n    src = \":helm\",\n)\n"
-            }
-          },
-          "sh_helm_get_darwin-arm64": {
-            "bzlFile": "@@bazel_tools//tools/build_defs/repo:http.bzl",
-            "ruleClassName": "http_archive",
-            "attributes": {
-              "sha256": "88115846a1fb58f8eb8f64fec5c343d95ca394f1be811602fa54a887c98730ac",
-              "urls": [
-                "https://get.helm.sh/helm-v3.15.4-darwin-arm64.tar.gz"
-              ],
-              "strip_prefix": "darwin-arm64",
-              "build_file_content": "\nload(\"@rules_helm//:helm.bzl\", \"helm_toolchain\")\npackage(default_visibility = [\"//visibility:public\"])\n\nhelm_toolchain(\n    name = \"helm_tools\",\n    src = \":helm\",\n)\n"
-            }
-          },
-          "sh_helm_get_linux-amd64": {
-            "bzlFile": "@@bazel_tools//tools/build_defs/repo:http.bzl",
-            "ruleClassName": "http_archive",
-            "attributes": {
-              "sha256": "fa419ecb139442e8a594c242343fafb7a46af3af34041c4eac1efcc49d74e626",
-              "urls": [
-                "https://get.helm.sh/helm-v3.15.4-linux-amd64.tar.gz"
-              ],
-              "strip_prefix": "linux-amd64",
-              "build_file_content": "\nload(\"@rules_helm//:helm.bzl\", \"helm_toolchain\")\npackage(default_visibility = [\"//visibility:public\"])\n\nhelm_toolchain(\n    name = \"helm_tools\",\n    src = \":helm\",\n)\n"
-            }
-          },
-          "sh_helm_get_darwin-amd64": {
-            "bzlFile": "@@bazel_tools//tools/build_defs/repo:http.bzl",
-            "ruleClassName": "http_archive",
-            "attributes": {
-              "sha256": "1bc3f354f7ce4d7fd9cfa5bcc701c1f32c88d27076d96c2792d5b5226062aee5",
-              "urls": [
-                "https://get.helm.sh/helm-v3.15.4-darwin-amd64.tar.gz"
-              ],
-              "strip_prefix": "darwin-amd64",
-              "build_file_content": "\nload(\"@rules_helm//:helm.bzl\", \"helm_toolchain\")\npackage(default_visibility = [\"//visibility:public\"])\n\nhelm_toolchain(\n    name = \"helm_tools\",\n    src = \":helm\",\n)\n"
-            }
-          },
-          "sh_helm_get_toolchains": {
-            "bzlFile": "@@//private:toolchain_repo.bzl",
-            "ruleClassName": "toolchains_repo",
-            "attributes": {
-              "user_repository_name": "sh_helm_get"
-            }
-          }
-        },
-        "recordedRepoMappingEntries": [
-          [
-            "",
-            "bazel_tools",
-            "bazel_tools"
-          ]
-        ]
-      }
-    },
     "@@apple_support~//crosstool:setup.bzl%apple_cc_configure_extension": {
       "general": {
         "bzlTransitiveDigest": "PjIds3feoYE8SGbbIq2SFTZy3zmxeO2tQevJZNDo7iY=",
@@ -635,6 +556,135 @@
           }
         },
         "recordedRepoMappingEntries": []
+      }
+    },
+    "@@rules_helm~//:extensions.bzl%helm_configure": {
+      "general": {
+        "bzlTransitiveDigest": "5WHVYeMU+0nJrbsOcrBELhTODpa3D3jpjL+QPKG+sYE=",
+        "usagesDigest": "dgqs1a0b6bNqtVSQVfOUnImFf0UObOf96kn5tuUEPsU=",
+        "recordedFileInputs": {},
+        "recordedDirentsInputs": {},
+        "envVariables": {},
+        "generatedRepoSpecs": {
+          "sh_helm_get_linux-arm64": {
+            "bzlFile": "@@bazel_tools//tools/build_defs/repo:http.bzl",
+            "ruleClassName": "http_archive",
+            "attributes": {
+              "sha256": "113ccc53b7c57c2aba0cd0aa560b5500841b18b5210d78641acfddc53dac8ab2",
+              "urls": [
+                "https://get.helm.sh/helm-v3.15.4-linux-amd64.tar.gz"
+              ],
+              "strip_prefix": "linux-arm64",
+              "build_file_content": "\nload(\"@rules_helm//:helm.bzl\", \"helm_toolchain\")\npackage(default_visibility = [\"//visibility:public\"])\n\nhelm_toolchain(\n    name = \"helm_tools\",\n    src = \":helm\",\n)\n"
+            }
+          },
+          "sh_helm_get_darwin-arm64": {
+            "bzlFile": "@@bazel_tools//tools/build_defs/repo:http.bzl",
+            "ruleClassName": "http_archive",
+            "attributes": {
+              "sha256": "88115846a1fb58f8eb8f64fec5c343d95ca394f1be811602fa54a887c98730ac",
+              "urls": [
+                "https://get.helm.sh/helm-v3.15.4-darwin-arm64.tar.gz"
+              ],
+              "strip_prefix": "darwin-arm64",
+              "build_file_content": "\nload(\"@rules_helm//:helm.bzl\", \"helm_toolchain\")\npackage(default_visibility = [\"//visibility:public\"])\n\nhelm_toolchain(\n    name = \"helm_tools\",\n    src = \":helm\",\n)\n"
+            }
+          },
+          "sh_helm_get_linux-amd64": {
+            "bzlFile": "@@bazel_tools//tools/build_defs/repo:http.bzl",
+            "ruleClassName": "http_archive",
+            "attributes": {
+              "sha256": "fa419ecb139442e8a594c242343fafb7a46af3af34041c4eac1efcc49d74e626",
+              "urls": [
+                "https://get.helm.sh/helm-v3.15.4-linux-amd64.tar.gz"
+              ],
+              "strip_prefix": "linux-amd64",
+              "build_file_content": "\nload(\"@rules_helm//:helm.bzl\", \"helm_toolchain\")\npackage(default_visibility = [\"//visibility:public\"])\n\nhelm_toolchain(\n    name = \"helm_tools\",\n    src = \":helm\",\n)\n"
+            }
+          },
+          "sh_helm_get_darwin-amd64": {
+            "bzlFile": "@@bazel_tools//tools/build_defs/repo:http.bzl",
+            "ruleClassName": "http_archive",
+            "attributes": {
+              "sha256": "1bc3f354f7ce4d7fd9cfa5bcc701c1f32c88d27076d96c2792d5b5226062aee5",
+              "urls": [
+                "https://get.helm.sh/helm-v3.15.4-darwin-amd64.tar.gz"
+              ],
+              "strip_prefix": "darwin-amd64",
+              "build_file_content": "\nload(\"@rules_helm//:helm.bzl\", \"helm_toolchain\")\npackage(default_visibility = [\"//visibility:public\"])\n\nhelm_toolchain(\n    name = \"helm_tools\",\n    src = \":helm\",\n)\n"
+            }
+          },
+          "sh_helm_get_toolchains": {
+            "bzlFile": "@@rules_helm~//private:toolchain_repo.bzl",
+            "ruleClassName": "toolchains_repo",
+            "attributes": {
+              "user_repository_name": "sh_helm_get"
+            }
+          }
+        },
+        "recordedRepoMappingEntries": [
+          [
+            "rules_helm~",
+            "bazel_tools",
+            "bazel_tools"
+          ]
+        ]
+      }
+    },
+    "@@rules_helm~//:extensions.bzl%helm_deps": {
+      "general": {
+        "bzlTransitiveDigest": "5WHVYeMU+0nJrbsOcrBELhTODpa3D3jpjL+QPKG+sYE=",
+        "usagesDigest": "7nds+hnaM3fuxAr9awEjypSPo9CI83ZR5mGp6HOy3Q0=",
+        "recordedFileInputs": {
+          "@@//Chart.lock.json": "4485967a9db328c8cb20e67b4eff4d227be3ec0ceb9eea12681f9d2e3e5c9362"
+        },
+        "recordedDirentsInputs": {},
+        "envVariables": {},
+        "generatedRepoSpecs": {
+          "io_github_prometheus_community_alertmanager_1_12_0": {
+            "bzlFile": "@@rules_helm~//:rules.bzl",
+            "ruleClassName": "helm_repo_chart",
+            "attributes": {
+              "chart": "alertmanager",
+              "version": "1.12.0",
+              "urls": [
+                "https://github.com/prometheus-community/helm-charts/releases/download/alertmanager-1.12.0/alertmanager-1.12.0.tgz"
+              ],
+              "sha256": "777093e540d84fc7cd32e22bf37cefe1b11fac19f9a593db591a6059ee5a30ba"
+            }
+          },
+          "io_github_prometheus_community_alertmanager_1_11_0": {
+            "bzlFile": "@@rules_helm~//:rules.bzl",
+            "ruleClassName": "helm_repo_chart",
+            "attributes": {
+              "chart": "alertmanager",
+              "version": "1.11.0",
+              "urls": [
+                "https://github.com/prometheus-community/helm-charts/releases/download/alertmanager-1.11.0/alertmanager-1.11.0.tgz"
+              ],
+              "sha256": "e58b8ab41229d0ae29ad2de34a2d5aeb0e211a3f1f564a7817866e576b903f0d"
+            }
+          },
+          "manual_chart_alertmanager": {
+            "bzlFile": "@@rules_helm~//:rules.bzl",
+            "ruleClassName": "helm_repo_chart",
+            "attributes": {
+              "chart": "alertmanager",
+              "version": "1.12.0",
+              "urls": [
+                "https://github.com/prometheus-community/helm-charts/releases/download/alertmanager-1.12.0/alertmanager-1.12.0.tgz"
+              ],
+              "sha256": "777093e540d84fc7cd32e22bf37cefe1b11fac19f9a593db591a6059ee5a30ba"
+            }
+          }
+        },
+        "recordedRepoMappingEntries": [
+          [
+            "rules_helm~",
+            "bazel_tools",
+            "bazel_tools"
+          ]
+        ]
       }
     }
   }
