@@ -6,7 +6,7 @@ VERSIONS = {
         },
         "linux-arm64": {
             "urls": ["https://get.helm.sh/helm-v3.15.4-linux-amd64.tar.gz"],
-            "sha256": "113ccc53b7c57c2aba0cd0aa560b5500841b18b5210d78641acfddc53dac8ab2",
+            "sha256": "11400fecfc07fd6f034863e4e0c4c4445594673fd2a129e701fe41f31170cfa9",
         },
         "darwin-amd64": {
             "urls": ["https://get.helm.sh/helm-v3.15.4-darwin-amd64.tar.gz"],
