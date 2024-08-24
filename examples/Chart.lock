@@ -1,0 +1,1 @@
+{"repositories":{"alertmanager":{"digest":"777093e540d84fc7cd32e22bf37cefe1b11fac19f9a593db591a6059ee5a30ba","urls":["https://github.com/prometheus-community/helm-charts/releases/download/alertmanager-1.12.0/alertmanager-1.12.0.tgz"]}}}

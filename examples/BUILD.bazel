@@ -1,0 +1,7 @@
+load("@//charts:defs.bzl", "lockfile")
+
+lockfile(
+    name = "helm",
+    chart_file = ":Chart.yaml",
+    lock_file = ":Chart.lock",
+)

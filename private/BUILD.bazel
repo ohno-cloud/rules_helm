@@ -1,0 +1,13 @@
+load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
+
+bzl_library(
+    name = "toolchain_repo",
+    srcs = ["toolchain_repo.bzl"],
+    visibility = ["//:__subpackages__"],
+)
+
+bzl_library(
+    name = "versions",
+    srcs = ["versions.bzl"],
+    visibility = ["//:__subpackages__"],
+)
