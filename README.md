@@ -33,9 +33,9 @@ For a Bazel MODULE example have a look in the [examples](./examples) folder.
 
 http_archive(
     name = "rules_helm",
-    sha256 = "e302a4dd629315ae2457fef72d3d040188b72e693d9fe60a1d284934186d1168",
-    strip_prefix = "rules_helm-6078980f67147a338fc62a28f58964e1c24113ec",
-    urls = ["https://github.com/dbanetto/rules_helm/archive/6078980f67147a338fc62a28f58964e1c24113ec.tar.gz"],
+    sha256 = "2782a737f8f3af15966669603dfb7c79cbde63af3896e8ada26a64718ec9cdab",
+    strip_prefix = "rules_helm-0.4.0",
+    urls = ["https://github.com/dbanetto/rules_helm/archive/refs/tags/0.4.0.tar.gz"],
 )
 
 load("@helm_rules//:repo.bzl", "helm_repositories")
