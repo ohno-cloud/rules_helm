@@ -560,8 +560,8 @@
     },
     "@@rules_helm~//:extensions.bzl%helm_configure": {
       "general": {
-        "bzlTransitiveDigest": "5WHVYeMU+0nJrbsOcrBELhTODpa3D3jpjL+QPKG+sYE=",
-        "usagesDigest": "dgqs1a0b6bNqtVSQVfOUnImFf0UObOf96kn5tuUEPsU=",
+        "bzlTransitiveDigest": "RD+jKjVOOPz21ilfvOKaRFCkh2ng/H68xHIHidK6agY=",
+        "usagesDigest": "zJAxXmH6bLABbkFf8bCstVodvolav4h+YWYYERHRYc8=",
         "recordedFileInputs": {},
         "recordedDirentsInputs": {},
         "envVariables": {},
@@ -570,9 +570,9 @@
             "bzlFile": "@@bazel_tools//tools/build_defs/repo:http.bzl",
             "ruleClassName": "http_archive",
             "attributes": {
-              "sha256": "113ccc53b7c57c2aba0cd0aa560b5500841b18b5210d78641acfddc53dac8ab2",
+              "sha256": "1888301aeb7d08a03b6d9f4d2b73dcd09b89c41577e80e3455c113629fc657a4",
               "urls": [
-                "https://get.helm.sh/helm-v3.15.4-linux-amd64.tar.gz"
+                "https://get.helm.sh/helm-v3.16.2-linux-arm64.tar.gz"
               ],
               "strip_prefix": "linux-arm64",
               "build_file_content": "\nload(\"@rules_helm//:helm.bzl\", \"helm_toolchain\")\npackage(default_visibility = [\"//visibility:public\"])\n\nhelm_toolchain(\n    name = \"helm_tools\",\n    src = \":helm\",\n)\n"
@@ -582,9 +582,9 @@
             "bzlFile": "@@bazel_tools//tools/build_defs/repo:http.bzl",
             "ruleClassName": "http_archive",
             "attributes": {
-              "sha256": "88115846a1fb58f8eb8f64fec5c343d95ca394f1be811602fa54a887c98730ac",
+              "sha256": "56413c7fbb496d2789881039cab61d849727c7b35db00826fae7a2685a403344",
               "urls": [
-                "https://get.helm.sh/helm-v3.15.4-darwin-arm64.tar.gz"
+                "https://get.helm.sh/helm-v3.16.2-darwin-arm64.tar.gz"
               ],
               "strip_prefix": "darwin-arm64",
               "build_file_content": "\nload(\"@rules_helm//:helm.bzl\", \"helm_toolchain\")\npackage(default_visibility = [\"//visibility:public\"])\n\nhelm_toolchain(\n    name = \"helm_tools\",\n    src = \":helm\",\n)\n"
@@ -594,9 +594,9 @@
             "bzlFile": "@@bazel_tools//tools/build_defs/repo:http.bzl",
             "ruleClassName": "http_archive",
             "attributes": {
-              "sha256": "fa419ecb139442e8a594c242343fafb7a46af3af34041c4eac1efcc49d74e626",
+              "sha256": "9318379b847e333460d33d291d4c088156299a26cd93d570a7f5d0c36e50b5bb",
               "urls": [
-                "https://get.helm.sh/helm-v3.15.4-linux-amd64.tar.gz"
+                "https://get.helm.sh/helm-v3.16.2-linux-amd64.tar.gz"
               ],
               "strip_prefix": "linux-amd64",
               "build_file_content": "\nload(\"@rules_helm//:helm.bzl\", \"helm_toolchain\")\npackage(default_visibility = [\"//visibility:public\"])\n\nhelm_toolchain(\n    name = \"helm_tools\",\n    src = \":helm\",\n)\n"
@@ -606,9 +606,9 @@
             "bzlFile": "@@bazel_tools//tools/build_defs/repo:http.bzl",
             "ruleClassName": "http_archive",
             "attributes": {
-              "sha256": "1bc3f354f7ce4d7fd9cfa5bcc701c1f32c88d27076d96c2792d5b5226062aee5",
+              "sha256": "33efd48492f2358a49a231873e8baf41f702b5ab059333ae9c31e5517633c16e",
               "urls": [
-                "https://get.helm.sh/helm-v3.15.4-darwin-amd64.tar.gz"
+                "https://get.helm.sh/helm-v3.16.2-darwin-amd64.tar.gz"
               ],
               "strip_prefix": "darwin-amd64",
               "build_file_content": "\nload(\"@rules_helm//:helm.bzl\", \"helm_toolchain\")\npackage(default_visibility = [\"//visibility:public\"])\n\nhelm_toolchain(\n    name = \"helm_tools\",\n    src = \":helm\",\n)\n"

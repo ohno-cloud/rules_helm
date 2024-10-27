@@ -84,7 +84,7 @@ func main() {
 		os.Exit(4)
 	}
 
-	lockBuf, err := json.Marshal(lock)
+	lockBuf, err := json.MarshalIndent(lock, "", "  ")
 	if err != nil {
 		fmt.Printf("failed to marshal lock file to json: %s", err)
 		os.Exit(5)
