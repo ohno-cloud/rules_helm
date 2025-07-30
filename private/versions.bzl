@@ -1,4 +1,22 @@
 VERSIONS = {
+    "3.18.4": {
+        "linux-amd64": {
+            "urls": ["https://get.helm.sh/helm-v3.18.4-linux-amd64.tar.gz"],
+            "sha256": "f8180838c23d7c7d797b208861fecb591d9ce1690d8704ed1e4cb8e2add966c1",
+        },
+        "linux-arm64": {
+            "urls": ["https://get.helm.sh/helm-v3.18.4-linux-arm64.tar.gz"],
+            "sha256": "c0a45e67eef0c7416a8a8c9e9d5d2d30d70e4f4d3f7bea5de28241fffa8f3b89",
+        },
+        "darwin-amd64": {
+            "urls": ["https://get.helm.sh/helm-v3.18.4-darwin-amd64.tar.gz"],
+            "sha256": "860a7238285b44b5dc7b3c4dad6194316885d7015d77c34e23177e0e9554af8f",
+        },
+        "darwin-arm64" :{
+            "urls": ["https://get.helm.sh/helm-v3.18.4-darwin-arm64.tar.gz"],
+            "sha256": "041849741550b20710d7ad0956e805ebd960b483fe978864f8e7fdd03ca84ec8",
+        },
+    },
     "3.16.2": {
         "linux-amd64": {
             "urls": ["https://get.helm.sh/helm-v3.16.2-linux-amd64.tar.gz"],

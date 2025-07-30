@@ -1,20 +1,12 @@
 {
   "repositories": {
-    "io_github_prometheus_community_alertmanager_1_11_0": {
-      "digest": "e58b8ab41229d0ae29ad2de34a2d5aeb0e211a3f1f564a7817866e576b903f0d",
+    "io_github_openbao_openbao": {
+      "digest": "47e321030c03617d25c26d1ae0f33b454e37454c3f29ab4ab1b03e33e55a2c17",
       "urls": [
-        "https://github.com/prometheus-community/helm-charts/releases/download/alertmanager-1.11.0/alertmanager-1.11.0.tgz"
+        "https://github.com/openbao/openbao-helm/releases/download/openbao-0.8.1/openbao-0.8.1.tgz"
       ],
-      "chart": "alertmanager",
-      "version": "1.11.0"
-    },
-    "io_github_prometheus_community_alertmanager_1_12_0": {
-      "digest": "777093e540d84fc7cd32e22bf37cefe1b11fac19f9a593db591a6059ee5a30ba",
-      "urls": [
-        "https://github.com/prometheus-community/helm-charts/releases/download/alertmanager-1.12.0/alertmanager-1.12.0.tgz"
-      ],
-      "chart": "alertmanager",
-      "version": "1.12.0"
+      "chart": "openbao",
+      "version": "0.8.1"
     }
   }
 }
