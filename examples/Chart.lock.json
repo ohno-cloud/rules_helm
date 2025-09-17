@@ -1,5 +1,13 @@
 {
   "repositories": {
+    "io_github_metallb_metallb": {
+      "digest": "4f0fc313cd97819a1c78fff0a389dfe1c9f98bc490f33f521317475df1d7b873",
+      "urls": [
+        "https://github.com/metallb/metallb/releases/download/metallb-chart-0.15.2/metallb-0.15.2.tgz"
+      ],
+      "chart": "metallb",
+      "version": "0.15.2"
+    },
     "io_github_openbao_openbao": {
       "digest": "47e321030c03617d25c26d1ae0f33b454e37454c3f29ab4ab1b03e33e55a2c17",
       "urls": [
@@ -7,6 +15,22 @@
       ],
       "chart": "openbao",
       "version": "0.8.1"
+    },
+    "io_jetstack_charts_cert_manager_v1_11_0": {
+      "digest": "39ebaad81cf7368643fc5616275b2f9e19d9837ccf10ae7f9531785ef4e03646",
+      "urls": [
+        "https://charts.jetstack.io/charts/cert-manager-v1.11.0.tgz"
+      ],
+      "chart": "cert-manager",
+      "version": "v1.11.0"
+    },
+    "io_jetstack_charts_cert_manager_v1_12_0": {
+      "digest": "1435a289262218111685cf311eb6b57f0e8d788abd4e0b513029043df68c17ae",
+      "urls": [
+        "https://charts.jetstack.io/charts/cert-manager-v1.12.0.tgz"
+      ],
+      "chart": "cert-manager",
+      "version": "v1.12.0"
     }
   }
 }

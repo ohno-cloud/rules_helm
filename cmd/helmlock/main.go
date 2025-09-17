@@ -163,11 +163,13 @@ func (c *Chart) GenerateLockFile(ctx context.Context, client *http.Client) (*Loc
 
 		for chart, chartVersions := range repoIndex.Entries {
 			foundVersions := map[string]bool{}
+			seenVersions := []string{}
+
 			// Filter out chart entries we're not after
 			if wantVersions, ok := wantCharts[chart]; ok {
 				foundCharts[chart] = true
 				for _, version := range chartVersions {
-
+					seenVersions = append(seenVersions, version.Version)
 					if slices.Contains(wantVersions, version.Version) {
 						var lockName string
 						if len(wantVersions) > 1 {
@@ -188,7 +190,7 @@ func (c *Chart) GenerateLockFile(ctx context.Context, client *http.Client) (*Loc
 				}
 
 				if len(foundVersions) != len(wantVersions) {
-					return nil, fmt.Errorf("did not find all versions of chart %s, found %v", chart, foundVersions)
+					return nil, fmt.Errorf("did not find all versions of chart %s, found %v and say %v", chart, foundVersions, seenVersions)
 				}
 			}
 
