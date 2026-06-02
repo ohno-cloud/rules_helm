@@ -341,7 +341,7 @@
     },
     "@@rules_helm~//:extensions.bzl%helm_configure": {
       "general": {
-        "bzlTransitiveDigest": "e3DNv85v4n4jSFYxO0zGFtiC/aubn2YPU2Dj0/eNR9M=",
+        "bzlTransitiveDigest": "ruHHBEGDQo6Ac8OioB3yvQ3i8nCFFRt2YIfFSVExRBk=",
         "usagesDigest": "zJAxXmH6bLABbkFf8bCstVodvolav4h+YWYYERHRYc8=",
         "recordedFileInputs": {},
         "recordedDirentsInputs": {},
@@ -414,7 +414,7 @@
     },
     "@@rules_helm~//:extensions.bzl%helm_deps": {
       "general": {
-        "bzlTransitiveDigest": "e3DNv85v4n4jSFYxO0zGFtiC/aubn2YPU2Dj0/eNR9M=",
+        "bzlTransitiveDigest": "ruHHBEGDQo6Ac8OioB3yvQ3i8nCFFRt2YIfFSVExRBk=",
         "usagesDigest": "3ry/dSUtLYosVo03+s0Z4sFswqnS88rv2dNSl3o0Glw=",
         "recordedFileInputs": {
           "@@//Chart.lock.json": "3db591eacf58bf28a46fb517a4112fa2518561cd2580daf9315a739793b96444"

@@ -1,4 +1,5 @@
 load(":providers.bzl", "HelmChartInfo")
+load("//private:oci.bzl", "download_oci_chart")
 
 # ==============================================================================
 # Helm repository chart
@@ -29,21 +30,13 @@ def _helm_repo_chart(ctx):
         if not ctx.attr.repository.startswith("oci://"):
             fail("helm_repo_chart only accepts repository values with the oci:// scheme")
 
-        helm = ctx.which("helm")
-        if helm == None:
-            fail("helm binary not found in PATH; OCI charts require helm pull and helm registry login credentials")
-
-        pull = ctx.execute([
-            helm,
-            "pull",
-            "{}/{}".format(ctx.attr.repository, ctx.attr.chart),
-            "--version",
-            ctx.attr.version,
-            "--destination",
-            ctx.path("."),
-        ])
-        if pull.return_code != 0:
-            fail("failed to pull OCI chart {}: {}{}".format(ctx.attr.repository, pull.stdout, pull.stderr))
+        download_oci_chart(
+            ctx = ctx,
+            repository = ctx.attr.repository,
+            chart = ctx.attr.chart,
+            version = ctx.attr.version,
+            output = file_name,
+        )
 
         digest_result = ctx.execute([
             "shasum",
@@ -72,6 +65,11 @@ _helm_repo_chart_attrs = {
     "repository": attr.string(
         doc = "The OCI repository reference to pull the chart from.",
         mandatory = False,
+    ),
+    "www_authenticate_challenges": attr.string_dict(
+        doc = "Optional registry host to WWW-Authenticate challenge mappings for OCI downloads.",
+        mandatory = False,
+        default = {},
     ),
     "chart": attr.string(
         doc = "The chart name.",

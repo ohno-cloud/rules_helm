@@ -6,10 +6,10 @@ go_library(
     importpath = "github.com/dbanetto/rules_helm/cmd/helmlock",
     visibility = ["//visibility:public"],
     deps = [
-        "@com_github_google_go_containerregistry//pkg/authn:authn",
-        "@com_github_google_go_containerregistry//pkg/name:name",
+        "@com_github_google_go_containerregistry//pkg/authn",
+        "@com_github_google_go_containerregistry//pkg/name",
         "@com_github_google_go_containerregistry//pkg/v1:pkg",
-        "@com_github_google_go_containerregistry//pkg/v1/remote:remote",
+        "@com_github_google_go_containerregistry//pkg/v1/remote",
         "@in_gopkg_yaml_v3//:yaml_v3",
     ],
 )
@@ -17,8 +17,8 @@ go_library(
 go_binary(
     name = "helmlock",
     embed = [":helmlock_lib"],
-    visibility = ["//visibility:public"],
     pure = "on",
+    visibility = ["//visibility:public"],
 )
 
 go_test(

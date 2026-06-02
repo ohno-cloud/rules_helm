@@ -250,7 +250,7 @@
   "moduleExtensions": {
     "//:extensions.bzl%helm_configure": {
       "general": {
-        "bzlTransitiveDigest": "Kx/1iAmbGuQyuWkC5j71VnH6XccUKVS1os3hE4ga6Ig=",
+        "bzlTransitiveDigest": "LimhcKc/58Vj70fw8CspMcUSh1pPv1qFrWKBk8Iowzc=",
         "usagesDigest": "Dgyp7di0Xjx04CL7U0RL/ZhzXTi7eMDMAQuwX40RAzI=",
         "recordedInputs": [
           "REPO_MAPPING:,bazel_tools bazel_tools"
