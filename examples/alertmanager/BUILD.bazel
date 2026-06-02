@@ -8,3 +8,30 @@ helm_template(
     namespace = "example",
     values = ":values.json",
 )
+
+helm_template(
+    name = "alertmanager_1_11_0",
+    chart = "@io_jetstack_charts_cert_manager_v1_11_0//:chart",
+    generate_name = "example",
+    include_crds = True,
+    namespace = "example",
+    values = ":values.json",
+)
+
+helm_template(
+    name = "alertmanager_1_12_0",
+    chart = "@io_jetstack_charts_cert_manager_v1_12_0//:chart",
+    generate_name = "example",
+    include_crds = True,
+    namespace = "example",
+    values = ":values.json",
+)
+
+helm_template(
+    name = "woodpekcer",
+    chart = "@io_ghcr_woodpecker_ci_helm_woodpecker//:chart",
+    generate_name = "example",
+    include_crds = True,
+    namespace = "example",
+    values = ":values.json",
+)
