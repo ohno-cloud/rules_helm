@@ -9,7 +9,7 @@ Deploying helm charts to repositories or to a kubernetes cluster is not the goal
 ## Rules
 
  * `helm_chart` - Basic wrapper around files to become a "Helm Chart"
- * `helm_repo_chart` - Pulls a chart from a repository & validates it with sha256
+ * `helm_repo_chart` - Pulls a chart from HTTP URLs or OCI repositories and validates it with sha256
  * `helm_template` - Templates the chart with a given set of `values.yaml`
 
 ## Todo
@@ -18,7 +18,8 @@ Deploying helm charts to repositories or to a kubernetes cluster is not the goal
     - [ ] Even more of them (arm, Windows, etc.)
     - [ ] Generate the version matrix from Helm's release page
  - [x] Pull external helm charts
-     - [x] Using a repositorie's `index.yaml`
+      - [x] Using a repositorie's `index.yaml`
+      - [x] Using OCI repositories via `helm pull`
  - [ ] Docs
  - [ ] Tests
  - [x] Working examples
@@ -57,7 +58,15 @@ def helm_dependencies():
         chart = "cert-manager",
         version = "1.8.2",
         urls = ["https://charts.jetstack.io/charts/cert-manager-v1.8.2.tgz"],
-        sha256 = "3e3262f08455d02f025e803b8227dea3ff3f88c170bfb0655b513fa274de5592",
+        sha256 = "sha256:3e3262f08455d02f025e803b8227dea3ff3f88c170bfb0655b513fa274de5592",
+    )
+
+    helm_repo_chart(
+        name = "io_ghcr_woodpecker_ci_helm_woodpecker",
+        chart = "woodpecker",
+        version = "3.6.4",
+        repository = "oci://ghcr.io/woodpecker-ci/helm",
+        sha256 = "sha256:<chart-tarball-digest>",
     )
 
 # jsonnet/BUILD.bazel
@@ -89,3 +98,5 @@ helm_template(
     values = ":values",
 )
 ```
+
+For OCI charts, authenticate ahead of time with `helm registry login`. Lockfiles now distinguish sources by using either `urls` or `repository`, so older lockfiles should be regenerated with the updated `helmlock` tool.

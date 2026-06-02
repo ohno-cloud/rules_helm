@@ -22,10 +22,11 @@ def _helm_deps(ctx):
 
         for chart in mod.tags.chart:
            targets[chart.name] = {
-            'chart': chart.chart,
-            'version': chart.version,
-            'urls': chart.urls,
-            'digest': chart.digest,
+             'chart': chart.chart,
+             'version': chart.version,
+             'urls': chart.urls,
+             'repository': chart.repository,
+             'digest': chart.digest,
            }
 
     for key, val in targets.items():
@@ -33,7 +34,8 @@ def _helm_deps(ctx):
             name = key,
             chart = val['chart'],
             version = val['version'],
-            urls = val['urls'],
+            urls = val.get('urls', []),
+            repository = val.get('repository', ''),
             sha256 = val['digest'],
         )
 
@@ -41,6 +43,7 @@ _lockfile = tag_class(attrs = {"lockfile": attr.label() })
 _chart = tag_class(attrs = {
     "name": attr.string(),
     "urls": attr.string_list(),
+    "repository": attr.string(),
     "digest": attr.string(),
     "chart": attr.string(),
     "version": attr.string(),
@@ -50,4 +53,3 @@ helm_deps = module_extension(
     implementation = _helm_deps,
     tag_classes = {"lockfile": _lockfile, "chart": _chart},
 )
-

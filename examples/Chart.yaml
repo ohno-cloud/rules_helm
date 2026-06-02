@@ -15,3 +15,6 @@ dependencies:
   - name: "metallb"
     version: "0.15.2"
     repository: "https://metallb.github.io/metallb"
+  - name: "woodpecker"
+    version: "3.6.4"
+    repository: "oci://ghcr.io/woodpecker-ci/helm"
