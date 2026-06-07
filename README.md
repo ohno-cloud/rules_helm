@@ -98,5 +98,3 @@ helm_template(
     values = ":values",
 )
 ```
-
-For OCI charts, authenticate ahead of time with `helm registry login`. Lockfiles now distinguish sources by using either `urls` or `repository`, so older lockfiles should be regenerated with the updated `helmlock` tool.
