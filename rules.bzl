@@ -1,4 +1,5 @@
 load(":providers.bzl", "HelmChartInfo")
+load("//private:oci.bzl", "download_oci_chart")
 
 # ==============================================================================
 # Helm repository chart
@@ -10,23 +11,45 @@ def _helm_repo_chart(ctx):
         chart=ctx.attr.chart,
         version=ctx.attr.version,
     )
-    # If `urls` are not given get some from the repository
-    if len(urls) == 0:
-        # FIXME: Only some repos are on the same domain
-        # The {reposirory}/index.yaml is ensured to exist but the chart files are defined in
-        # entries.{chart}[.version=${version}].urls
-        urls.push("{repo}/{file_name}".format(
-            repo=ctx.attr.repository,
-            file_name=file_name,
-        ))
 
-    ctx.report_progress("Downloading from {}".format(urls))
-    chart = ctx.download(
-        url = urls,
-        output = file_name,
-        sha256 = ctx.attr.sha256,
-        auth = ctx.attr.auth,
-    )
+    if len(urls) > 0 and ctx.attr.repository:
+        fail("helm_repo_chart expects exactly one of 'urls' or 'repository'")
+
+    if len(urls) == 0 and not ctx.attr.repository:
+        fail("helm_repo_chart requires either 'urls' or 'repository'")
+
+    if len(urls) > 0:
+        ctx.report_progress("Downloading from {}".format(urls))
+        ctx.download(
+            url = urls,
+            output = file_name,
+            sha256 = _strip_sha256_prefix(ctx.attr.sha256),
+            auth = ctx.attr.auth,
+        )
+    else:
+        if not ctx.attr.repository.startswith("oci://"):
+            fail("helm_repo_chart only accepts repository values with the oci:// scheme")
+
+        download_oci_chart(
+            ctx = ctx,
+            repository = ctx.attr.repository,
+            chart = ctx.attr.chart,
+            version = ctx.attr.version,
+            output = file_name,
+        )
+
+        digest_result = ctx.execute([
+            "shasum",
+            "-a",
+            "256",
+            file_name,
+        ])
+        if digest_result.return_code != 0:
+            fail("failed to calculate sha256 for {}: {}{}".format(file_name, digest_result.stdout, digest_result.stderr))
+
+        actual_digest = "sha256:{}".format(digest_result.stdout.split(" ", 1)[0].strip())
+        if actual_digest != ctx.attr.sha256:
+            fail("sha256 mismatch for {}: got {}, want {}".format(file_name, actual_digest, ctx.attr.sha256))
 
     ctx.report_progress("Templating BUILD file.")
     ctx.template(
@@ -40,8 +63,13 @@ def _helm_repo_chart(ctx):
 
 _helm_repo_chart_attrs = {
     "repository": attr.string(
-        doc = "The URL of the repository to pull the chart from.",
+        doc = "The OCI repository reference to pull the chart from.",
         mandatory = False,
+    ),
+    "www_authenticate_challenges": attr.string_dict(
+        doc = "Optional registry host to WWW-Authenticate challenge mappings for OCI downloads.",
+        mandatory = False,
+        default = {},
     ),
     "chart": attr.string(
         doc = "The chart name.",
@@ -78,6 +106,11 @@ helm_repo_chart = repository_rule(
     ),
     doc = "Depdend on an external Helm Chart that is published in a repostiory.",
 )
+
+def _strip_sha256_prefix(value):
+    if value.startswith("sha256:"):
+        return value[len("sha256:"):]
+    return value
 
 # ==============================================================================
 # Helm chart
@@ -217,4 +250,3 @@ helm_template = rule(
     ),
     toolchains = ["//:toolchain_type"]
 )
-

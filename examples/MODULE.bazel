@@ -1,7 +1,6 @@
 module(
     name = "rules_helm_examples",
     version = "0.0.0",
-    compatibility_level = 1,
 )
 
 bazel_dep(name = "rules_helm", version = "0.0.0")
@@ -15,7 +14,7 @@ helm_deps.lockfile(lockfile = "//:Chart.lock.json")
 helm_deps.chart(
     name = "manual_chart_alertmanager",
     chart = "alertmanager",
-    digest = "777093e540d84fc7cd32e22bf37cefe1b11fac19f9a593db591a6059ee5a30ba",
+    digest = "sha256:777093e540d84fc7cd32e22bf37cefe1b11fac19f9a593db591a6059ee5a30ba",
     urls = [
         "https://github.com/prometheus-community/helm-charts/releases/download/alertmanager-1.12.0/alertmanager-1.12.0.tgz",
     ],
@@ -23,7 +22,10 @@ helm_deps.chart(
 )
 use_repo(
     helm_deps,
-    "io_github_prometheus_community_alertmanager_1_11_0",
-    "io_github_prometheus_community_alertmanager_1_12_0",
+    "io_ghcr_woodpecker_ci_helm_woodpecker",
+    "io_github_metallb_metallb",
+    "io_github_openbao_openbao",
+    "io_jetstack_charts_cert_manager_v1_11_0",
+    "io_jetstack_charts_cert_manager_v1_12_0",
     "manual_chart_alertmanager",
 )

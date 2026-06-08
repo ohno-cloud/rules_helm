@@ -54,7 +54,10 @@ bzl_library(
     name = "rules",
     srcs = ["rules.bzl"],
     visibility = ["//visibility:public"],
-    deps = [":providers"],
+    deps = [
+        ":providers",
+        "//private:oci",
+    ],
 )
 
 bzl_library(

@@ -40,8 +40,6 @@ def helm_lock_file(name, charts_file, lock_file):
         charts_file=charts_file,
         tags = [
             "requires-network",
-            "no-remote-exec",
-            "no-sandbox",
         ],
     )
 
