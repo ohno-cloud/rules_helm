@@ -1,5 +1,11 @@
 {
   "repositories": {
+    "io_docker_registry_1_envoyproxy_gateway_helm": {
+      "digest": "sha256:251a38715d533bdce2ed11fa5d6c6663a80222a3b170adf1fe7a48d6fe0f0087",
+      "repository": "oci://registry-1.docker.io/envoyproxy",
+      "chart": "gateway-helm",
+      "version": "1.8.1"
+    },
     "io_ghcr_woodpecker_ci_helm_woodpecker": {
       "digest": "sha256:257ea9d7e315d2d04c12ea080f103c23036921e7a46af188b4e1e969dcc20826",
       "repository": "oci://ghcr.io/woodpecker-ci/helm",

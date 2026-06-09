@@ -14,6 +14,9 @@ def _generate_lockfile(ctx):
         arguments = [args],
         inputs = ctx.files.charts_file,
         outputs = [output_file],
+        execution_requirements = {
+            "no-remote-exec": "1",
+        },
     )
 
     return [
