@@ -14,9 +14,6 @@ def _generate_lockfile(ctx):
         arguments = [args],
         inputs = ctx.files.charts_file,
         outputs = [output_file],
-        execution_requirements = {
-            "no-remote-exec": "1",
-        },
     )
 
     return [
@@ -36,19 +33,20 @@ generate_lockfile = rule(
 )
 
 
-def helm_lock_file(name, charts_file, lock_file):
+def helm_lock_file(name, charts_file, lock_file, tags = ["requires-network"], diff_test = True, **kwargs):
 
     generate_lockfile(
         name=name,
         charts_file=charts_file,
-        tags = [
-            "requires-network",
-        ],
+        tags = tags,
+        **kwargs
     )
 
     write_source_files(
         name = name + ".update",
+        diff_test = diff_test,
         files = {
             lock_file: ":" + name,
         },
+        tags = tags,
     )

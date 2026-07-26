@@ -417,11 +417,22 @@
         "bzlTransitiveDigest": "ruHHBEGDQo6Ac8OioB3yvQ3i8nCFFRt2YIfFSVExRBk=",
         "usagesDigest": "3ry/dSUtLYosVo03+s0Z4sFswqnS88rv2dNSl3o0Glw=",
         "recordedFileInputs": {
-          "@@//Chart.lock.json": "3db591eacf58bf28a46fb517a4112fa2518561cd2580daf9315a739793b96444"
+          "@@//Chart.lock.json": "8333e4550425d7fec2e45ed58e783a243a2e2d57e78e2a91b869732f20e85ff9"
         },
         "recordedDirentsInputs": {},
         "envVariables": {},
         "generatedRepoSpecs": {
+          "io_docker_registry_1_envoyproxy_gateway_helm": {
+            "bzlFile": "@@rules_helm~//:rules.bzl",
+            "ruleClassName": "helm_repo_chart",
+            "attributes": {
+              "chart": "gateway-helm",
+              "version": "1.8.1",
+              "urls": [],
+              "repository": "oci://registry-1.docker.io/envoyproxy",
+              "sha256": "sha256:251a38715d533bdce2ed11fa5d6c6663a80222a3b170adf1fe7a48d6fe0f0087"
+            }
+          },
           "io_ghcr_woodpecker_ci_helm_woodpecker": {
             "bzlFile": "@@rules_helm~//:rules.bzl",
             "ruleClassName": "helm_repo_chart",
