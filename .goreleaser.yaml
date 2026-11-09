@@ -1,0 +1,28 @@
+version: 2
+project_name: helmlock
+
+builds:
+  - id: helmlock
+    main: ./cmd/helmlock
+    binary: helmlock
+    env: [CGO_ENABLED=0]
+    goos: [linux, darwin]
+    goarch: [amd64, arm64]
+    flags: [-trimpath, -buildvcs=false]
+    ldflags: [-s -w -buildid=]
+
+archives:
+  - formats: [binary]
+    name_template: 'helmlock-{{ .Os }}-{{ .Arch }}'
+
+checksum:
+  name_template: SHA256SUMS
+  algorithm: sha256
+
+release:
+  prerelease: true
+  make_latest: false
+  target_commitish: '{{ .Commit }}'
+
+changelog:
+  disable: true

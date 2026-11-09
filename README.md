@@ -1,100 +1,126 @@
-# `helm_rules`
+# rules_helm
 
-This set of rules are made with using `rules_jsonnet` in mind.
+Bazel rules for downloading and templating Helm charts. Use the rendered YAML
+directly, or transform it with tools such as `rules_jsonnet`. Publishing charts
+and deploying to Kubernetes are outside this ruleset's scope.
 
-Mostly so jsonnet can be used to make modications to a templated helm chart.
+**Requirements:** Bazel 9 or newer. The resolver uses prebuilt binaries for Linux
+and macOS, on amd64 and arm64; consumers do not need Go installed. For an
+unreleased checkout, see the [local resolver setup](cmd/helmlock/README.md#build-and-use-a-local-resolver).
 
-Deploying helm charts to repositories or to a kubernetes cluster is not the goal of these rules.
+## Quick start
 
-## Rules
+Add `rules_helm` to your `MODULE.bazel` using your chosen release or source
+override. See the [examples module](examples/MODULE.bazel) for a local checkout.
 
- * `helm_chart` - Basic wrapper around files to become a "Helm Chart"
- * `helm_repo_chart` - Pulls a chart from HTTP URLs or OCI repositories and validates it with sha256
- * `helm_template` - Templates the chart with a given set of `values.yaml`
+### 1. Declare chart dependencies
 
-## Todo
+Keep dependencies in an ordinary `Chart.yaml`. The rules read it without
+rewriting its comments, quotes, or formatting, so Renovate can update it normally.
 
- - [x] Toolchains
-    - [ ] Even more of them (arm, Windows, etc.)
-    - [ ] Generate the version matrix from Helm's release page
- - [x] Pull external helm charts
-      - [x] Using a repositorie's `index.yaml`
-      - [x] Using OCI repositories via `helm pull`
- - [ ] Docs
- - [ ] Tests
- - [x] Working examples
- - [ ] Clean up code
+```yaml
+apiVersion: v2
+name: thirdparty
+version: 0.1.0
+dependencies:
+  - name: cert-manager
+    version: "v1.12.0"
+    repository: https://charts.jetstack.io
+  - name: woodpecker
+    version: "3.6.4"
+    repository: oci://ghcr.io/woodpecker-ci/helm
+```
 
-## Examples
-
-For a Bazel MODULE example have a look in the [examples](./examples) folder.
+Read the file from `MODULE.bazel`. You can give the generated repositories shorter
+local names with `use_repo`:
 
 ```starlark
-# WORKSPACE
-
-http_archive(
-    name = "rules_helm",
-    sha256 = "2782a737f8f3af15966669603dfb7c79cbde63af3896e8ada26a64718ec9cdab",
-    strip_prefix = "rules_helm-0.4.0",
-    urls = ["https://github.com/dbanetto/rules_helm/archive/refs/tags/0.4.0.tar.gz"],
-)
-
-load("@helm_rules//:repo.bzl", "helm_repositories")
-
-helm_repositories(register_toolchains=register_toolchains)
-
-load("//third-party/helm:deps.bzl", "helm_dependencies")
-
-helm_dependencies()
-
-# thrid-part/helm/deps.bzl
-
-load("//tools/helm_rules:helm.bzl", "helm_repo_chart")
-
-def helm_dependencies():
-
-    helm_repo_chart(
-        name = "io_jetstack_charts_cert_manager",
-        chart = "cert-manager",
-        version = "1.8.2",
-        urls = ["https://charts.jetstack.io/charts/cert-manager-v1.8.2.tgz"],
-        sha256 = "sha256:3e3262f08455d02f025e803b8227dea3ff3f88c170bfb0655b513fa274de5592",
-    )
-
-    helm_repo_chart(
-        name = "io_ghcr_woodpecker_ci_helm_woodpecker",
-        chart = "woodpecker",
-        version = "3.6.4",
-        repository = "oci://ghcr.io/woodpecker-ci/helm",
-        sha256 = "sha256:<chart-tarball-digest>",
-    )
-
-# jsonnet/BUILD.bazel
-
-jsonnet_to_json(
-    name = "cert-manager",
-    src = "main.jsonnet",
-    outs = ["manifests.yaml"],
-    extra_args = ["-S"],
-    tla_str_files = {
-        ":cert_manager_template": "cert_manager_template",
-    },
-)
-
-jsonnet_to_json(
-    name = "values",
-    src = "values.jsonnet",
-    outs = ["vaules.yaml"],
-    extra_args = ["-S"],
-    deps = [
-        "//jsonnet/lib/values/cert-manager",
-    ],
-)
-
-helm_template(
-    name = "cert_manager_template",
-    chart = "@io_jetstack_charts_cert_manager//:chart",
-    namespace = "cert-manager",
-    values = ":values",
+helm_deps = use_extension("@rules_helm//:extensions.bzl", "helm_deps")
+helm_deps.from_file(chart = "//:Chart.yaml")
+use_repo(
+    helm_deps,
+    cert_manager = "io_jetstack_charts_cert_manager",
+    woodpecker = "io_ghcr_woodpecker_ci_helm_woodpecker",
 )
 ```
+
+### 2. Template a chart
+
+Add a `values.yaml` with your chart configuration and create `BUILD.bazel`:
+
+```starlark
+load("@rules_helm//:helm.bzl", "helm_template")
+
+exports_files(["Chart.yaml"])
+
+helm_template(
+    name = "cert_manager",
+    chart = "@cert_manager//:chart",
+    namespace = "cert-manager",
+    values = ":values.yaml",
+    out = "cert-manager.yaml",
+)
+```
+
+```sh
+bazel mod deps
+bazel build //:cert_manager
+```
+
+The rendered manifests are written to `bazel-bin/cert-manager.yaml`.
+
+## Updating dependencies
+
+Change versions in `Chart.yaml`, then run:
+
+```sh
+bazel mod deps
+```
+
+Commit both `Chart.yaml` and `MODULE.bazel.lock`. Renovate's post-update automation
+should run the same command. `bazel mod tidy` can update `use_repo` declarations
+when repository names change.
+
+Resolved URLs and chart archive digests are stored as facts in
+`MODULE.bazel.lock`; there is no separate chart lockfile. Existing resolutions are
+reused, and Bazel verifies downloaded archives against their pinned SHA-256.
+Republishing an OCI version tag with different chart content fails verification.
+
+## Versions and repository names
+
+- Only exact versions are supported, not version ranges, repository aliases, or
+  local `file://` dependencies.
+- Requests for the same repository, chart, and version are deduplicated across
+  modules. Different versions can coexist.
+- Currently, a single version uses an unversioned repository name. When multiple
+  versions of that chart/repository are requested, each name gets a version
+  suffix, such as `io_jetstack_charts_cert_manager_v1_12_0`. See
+  [the multi-version example](examples/Chart.yaml).
+- Choose your own local names with `use_repo` renaming or BUILD `alias()` targets.
+  Conflicting generated names are errors rather than silent overrides.
+
+For explicit URLs and digests instead of a `Chart.yaml` input, use
+`helm_deps.chart(...)`; see the [extension reference](docs/extensions.md).
+
+## Private OCI registries
+
+Resolution uses the Go container-registry default credential keychain. Chart
+downloads support Docker `auths` files, but do not support all of the credential
+helpers available during resolution. Authentication tokens are not stored in
+Bazel facts. See the [repository rule reference](docs/rules.md#helm_repo_chart)
+for download authentication attributes.
+
+## Migrating from the chart lockfile API
+
+Replace `helm_deps.lockfile(lockfile = ...)` with
+`helm_deps.from_file(chart = ...)`. Remove `Chart.lock.json` and BUILD targets
+using `helm_lock_file` or `generate_lockfile`; those APIs have been removed.
+`helm_deps.chart(...)` remains available for explicitly pinned dependencies.
+
+## Reference and contributing
+
+- [Rules and toolchains](docs/rules.md)
+- [Module extensions and their tags](docs/extensions.md)
+- [Providers](docs/providers.md)
+- [Working examples](examples/)
+- [Contributing, testing, documentation generation, and releases](CONTRIBUTING.md)

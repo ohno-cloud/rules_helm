@@ -1,0 +1,15 @@
+load("@gazelle//:def.bzl", "DEFAULT_LANGUAGES", "gazelle", "gazelle_binary")
+
+# Keep development-only loads out of the public root package: consumers don't
+# have rules_go, Gazelle, or the Starlark plugin in their module graph.
+gazelle_binary(
+    name = "gazelle-all",
+    languages = DEFAULT_LANGUAGES + ["@bazel_skylib_gazelle_plugin//bzl"],
+    visibility = ["//:__pkg__"],
+)
+
+gazelle(
+    name = "gazelle",
+    gazelle = ":gazelle-all",
+    visibility = ["//:__pkg__"],
+)

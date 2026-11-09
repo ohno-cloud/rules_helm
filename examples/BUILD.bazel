@@ -1,7 +1,1 @@
-load("@rules_helm//charts:defs.bzl", "helm_lock_file")
-
-helm_lock_file(
-    name = "helm",
-    charts_file = ":Chart.yaml",
-    lock_file = ":Chart.lock.json",
-)
+exports_files(["Chart.yaml"])

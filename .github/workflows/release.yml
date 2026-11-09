@@ -1,0 +1,46 @@
+name: Publish merged release
+
+on:
+  pull_request:
+    types: [closed]
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    if: github.event.pull_request.merged && startsWith(github.head_ref, 'release/v') && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.merge_commit_sha }}
+          fetch-depth: 0
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - name: Promote the pinned GoReleaser artifacts without rebuilding
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_BRANCH: ${{ github.head_ref }}
+        run: |
+          snapshot=$(jq -r .tag private/helmlock.json)
+          source=$(jq -r .source_commit private/helmlock.json)
+          version=$(jq -r .rules_version private/helmlock.json)
+          test "$RELEASE_BRANCH" = "release/v${version}"
+          git diff --exit-code "$source" HEAD -- cmd/helmlock go.mod go.sum .goreleaser.yaml
+          mkdir promoted
+          gh release download "$snapshot" --dir promoted
+          go run ./tools/pinhelmlock verify --artifacts promoted
+          tag="v${version}"
+          if git show-ref --verify --quiet "refs/tags/$tag"; then
+            test "$(git rev-list -n 1 "$tag")" = "$(git rev-parse HEAD)"
+          fi
+          if gh release view "$tag" >/dev/null 2>&1; then
+            echo "Release already exists; refusing to overwrite artifacts"
+            exit 1
+          fi
+          flags=()
+          if [[ "$version" == *-* ]]; then flags+=(--prerelease); fi
+          gh release create "$tag" promoted/* --target "$(git rev-parse HEAD)" --generate-notes --title "$tag" --notes "Helper artifacts promoted unchanged from ${snapshot}." "${flags[@]}"

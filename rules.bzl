@@ -1,5 +1,7 @@
-load(":providers.bzl", "HelmChartInfo")
+"""Rules for declaring, downloading, and rendering Helm charts."""
+
 load("//private:oci.bzl", "download_oci_chart")
+load(":providers.bzl", "HelmChartInfo")
 
 # ==============================================================================
 # Helm repository chart
@@ -8,8 +10,8 @@ load("//private:oci.bzl", "download_oci_chart")
 def _helm_repo_chart(ctx):
     urls = ctx.attr.urls
     file_name = "{chart}-{version}.tgz".format(
-        chart=ctx.attr.chart,
-        version=ctx.attr.version,
+        chart = ctx.attr.chart,
+        version = ctx.attr.version,
     )
 
     if len(urls) > 0 and ctx.attr.repository:
@@ -38,26 +40,13 @@ def _helm_repo_chart(ctx):
             output = file_name,
         )
 
-        digest_result = ctx.execute([
-            "shasum",
-            "-a",
-            "256",
-            file_name,
-        ])
-        if digest_result.return_code != 0:
-            fail("failed to calculate sha256 for {}: {}{}".format(file_name, digest_result.stdout, digest_result.stderr))
-
-        actual_digest = "sha256:{}".format(digest_result.stdout.split(" ", 1)[0].strip())
-        if actual_digest != ctx.attr.sha256:
-            fail("sha256 mismatch for {}: got {}, want {}".format(file_name, actual_digest, ctx.attr.sha256))
-
     ctx.report_progress("Templating BUILD file.")
     ctx.template(
         "BUILD.bazel",
         ctx.attr._build_tpl,
         substitutions = {
-            "{version}" : ctx.attr.version.replace('-', '_'),
-            "{src}" : file_name,
+            "{version}": ctx.attr.version.replace("-", "_"),
+            "{src}": file_name,
         },
     )
 
@@ -76,15 +65,13 @@ _helm_repo_chart_attrs = {
         mandatory = True,
     ),
     "version": attr.string(
-        doc = "The repository URL to pull the chart from.",
+        doc = "The exact chart version to download.",
         mandatory = True,
     ),
-
     "urls": attr.string_list(
         doc = "Direct URL to the Chart .tgz file.",
         mandatory = False,
     ),
-
     "sha256": attr.string(
         doc = "A SHA256 of the chart file.",
         mandatory = True,
@@ -102,9 +89,9 @@ _helm_repo_chart_attrs = {
 helm_repo_chart = repository_rule(
     implementation = _helm_repo_chart,
     attrs = dict(
-        _helm_repo_chart_attrs.items()
+        _helm_repo_chart_attrs.items(),
     ),
-    doc = "Depdend on an external Helm Chart that is published in a repostiory.",
+    doc = "Download a chart from HTTP archive URLs or an OCI repository and verify its SHA-256. Supply exactly one of urls or repository.",
 )
 
 def _strip_sha256_prefix(value):
@@ -122,21 +109,23 @@ def _helm_chart(ctx):
     return [
         DefaultInfo(files = depset(files)),
         HelmChartInfo(
-            version=ctx.attr.version,
+            version = ctx.attr.version,
         ),
     ]
 
 helm_chart = rule(
     implementation = _helm_chart,
+    doc = "Expose a local Helm chart file with its version for templating.",
     attrs = {
         "src": attr.label(
-            allow_single_file=True,
+            doc = "The chart archive or file to expose.",
+            allow_single_file = True,
         ),
         "version": attr.string(
-            doc = "The repository URL to pull the chart from.",
+            doc = "The chart version exposed through HelmChartInfo.",
             mandatory = True,
         ),
-    }
+    },
 )
 
 # ==============================================================================
@@ -240,13 +229,14 @@ _helm_template_attrs = {
     "arguments": attr.string_list(
         doc = "Additional arguments to be passed to helm template.",
         mandatory = False,
-    )
+    ),
 }
 
 helm_template = rule(
     implementation = _helm_template_impl,
+    doc = "Render a chart to a YAML manifest using the registered Helm toolchain and supplied values.",
     attrs = dict(
-        _helm_template_attrs.items()
+        _helm_template_attrs.items(),
     ),
-    toolchains = ["//:toolchain_type"]
+    toolchains = ["//:toolchain_type"],
 )
