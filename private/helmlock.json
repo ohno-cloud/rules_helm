@@ -1,8 +1,8 @@
 {
   "protocol": 1,
-  "rules_version": "0.4.0",
-  "tag": "v0.0.0-main.d8fab6c37c07d148ca5dcac3b750326a349c17f4",
-  "source_commit": "d8fab6c37c07d148ca5dcac3b750326a349c17f4",
+  "rules_version": "0.5.0",
+  "tag": "v0.0.0-main.862522a87810f6bc19403448620a5ebe029448a7",
+  "source_commit": "862522a87810f6bc19403448620a5ebe029448a7",
   "sha256": {
     "darwin-amd64": "64f3f825bea7ffc3a2c9dd8b7ed2262539c895e60db7f89367d726543b309fb6",
     "darwin-arm64": "a0643f16fe33c26ae181d84494f8f365ee411b17edb0a202c0b3008ddded63f9",
