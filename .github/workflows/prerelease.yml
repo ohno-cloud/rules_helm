@@ -2,8 +2,7 @@ name: Main prerelease
 
 on:
   push:
-    # Temporarily allow this branch to bootstrap the first resolver artifacts.
-    branches: [main, mctx-facts]
+    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -15,7 +14,7 @@ concurrency:
 
 jobs:
   release:
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/mctx-facts'
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

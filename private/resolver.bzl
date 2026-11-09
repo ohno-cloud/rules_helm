@@ -18,7 +18,7 @@ def _resolver_impl(ctx):
         if not metadata["tag"] or not digest:
             fail("No released helmlock for {} is pinned yet. Publish a main prerelease and prepare a release PR, or set --repo_env=RULES_HELM_RESOLVER=/absolute/path/to/helmlock for development.".format(platform))
         ctx.download(
-            url = "https://github.com/dbanetto/rules_helm/releases/download/{}/helmlock-{}{}".format(metadata["tag"], platform, ".exe" if os == "windows" else ""),
+            url = "https://github.com/ohno-cloud/rules_helm/releases/download/{}/helmlock-{}{}".format(metadata["tag"], platform, ".exe" if os == "windows" else ""),
             output = executable,
             sha256 = digest,
             executable = True,

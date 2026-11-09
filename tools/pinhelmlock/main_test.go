@@ -107,3 +107,24 @@ func TestCommandArguments(t *testing.T) {
 		}
 	}
 }
+
+func TestCommandUsesBazelWorkspace(t *testing.T) {
+	directory := artifacts(t)
+	root := t.TempDir()
+	if err := os.Mkdir(filepath.Join(root, "private"), 0700); err != nil {
+		t.Fatal(err)
+	}
+	write(t, filepath.Join(root, "MODULE.bazel"), `module(name = "rules_helm", version = "0.4.0")`)
+	t.Setenv("BUILD_WORKSPACE_DIRECTORY", root)
+	relative, err := filepath.Rel(root, directory)
+	if err != nil {
+		t.Fatal(err)
+	}
+	tag := "v0.0.0-main." + strings.Repeat("a", 40)
+	if err := run([]string{"pin", "--artifacts", relative, "--tag", tag, "--version", "0.5.0"}); err != nil {
+		t.Fatal(err)
+	}
+	if err := run([]string{"verify", "--artifacts", relative}); err != nil {
+		t.Fatal(err)
+	}
+}

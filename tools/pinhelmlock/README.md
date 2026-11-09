@@ -18,6 +18,9 @@ bazel run //tools/pinhelmlock -- verify \
   --artifacts /absolute/path/to/artifacts
 ```
 
+Under `bazel run`, the tool uses `BUILD_WORKSPACE_DIRECTORY` to read and update
+the checkout; relative artifact paths are also resolved from the workspace root.
+
 `pin` checks every binary's SHA-256, records the snapshot tag and source commit,
 and updates the rules version in `MODULE.bazel`. `verify` checks the downloaded
 files against both the checksum manifest and the pins, and checks that the

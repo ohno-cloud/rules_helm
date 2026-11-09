@@ -162,10 +162,18 @@ func run(args []string) error {
 	if *directory == "" || flags.NArg() != 0 {
 		return fmt.Errorf("--artifacts is required and positional arguments are not accepted")
 	}
-	if args[0] == "pin" {
-		return pin(".", *directory, *tag, *version)
+	// bazel run starts in the runfiles tree, but pins belong to the checkout.
+	root := os.Getenv("BUILD_WORKSPACE_DIRECTORY")
+	if root == "" {
+		root = "."
 	}
-	return verify(".", *directory)
+	if !filepath.IsAbs(*directory) {
+		*directory = filepath.Join(root, *directory)
+	}
+	if args[0] == "pin" {
+		return pin(root, *directory, *tag, *version)
+	}
+	return verify(root, *directory)
 }
 
 func main() {

@@ -43,13 +43,14 @@ with `GITHUB_TOKEN` do not trigger `pull_request` workflows. Merge with a human 
 GitHub App identity so the merge triggers the release and main-push workflows.
 No personal access token or GoReleaser Pro license is required.
 
-### Bootstrapping the first artifacts
+### Pinned resolver artifacts
 
-Until the first snapshot has been published and pinned, `private/helmlock.json`
-has no artifact pin and local testing requires `RULES_HELM_RESOLVER`. The
-prerelease workflow temporarily also allows pushes to `mctx-facts` to produce the
-initial artifacts. Its snapshot tag format is unchanged so the pinning utility
-can consume them. Remove that temporary branch allowance after bootstrapping.
+[`private/helmlock.json`](../../private/helmlock.json) selects a published snapshot
+and records the SHA-256 for each platform. Consumers use those binaries without
+needing a local resolver override. Keep pinned snapshots published and their
+assets unchanged: a draft, deleted release, or replaced binary cannot be used
+reliably by consumers. Local development can still use `RULES_HELM_RESOLVER` as
+described in the [resolver README](../../cmd/helmlock/README.md).
 
 Release tags are created by the publishing workflows. Do not pre-create them or
 expect tags created with `GITHUB_TOKEN` to trigger another workflow.
