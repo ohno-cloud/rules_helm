@@ -10,7 +10,7 @@ local_path_override(
 )
 
 helm_deps = use_extension("@rules_helm//:extensions.bzl", "helm_deps")
-helm_deps.lockfile(lockfile = "//:Chart.lock.json")
+helm_deps.from_file(chart = "//:Chart.yaml")
 helm_deps.chart(
     name = "manual_chart_alertmanager",
     chart = "alertmanager",
@@ -22,6 +22,7 @@ helm_deps.chart(
 )
 use_repo(
     helm_deps,
+    "io_docker_registry_1_envoyproxy_gateway_helm",
     "io_ghcr_woodpecker_ci_helm_woodpecker",
     "io_github_metallb_metallb",
     "io_github_openbao_openbao",

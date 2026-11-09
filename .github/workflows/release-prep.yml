@@ -1,0 +1,61 @@
+name: Prepare release PR
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Rules version without a leading v (for example 0.5.0)
+        type: string
+        required: true
+
+permissions:
+  actions: write
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: release-preparation
+  cancel-in-progress: false
+
+jobs:
+  prepare:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - name: Download and pin latest main snapshot
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_VERSION: ${{ inputs.version }}
+        run: |
+          source=$(git rev-parse HEAD)
+          tag="v0.0.0-main.${source}"
+          mkdir "$RUNNER_TEMP/promoted"
+          gh release download "$tag" --dir "$RUNNER_TEMP/promoted"
+          go run ./tools/pinhelmlock pin --artifacts "$RUNNER_TEMP/promoted" --tag "$tag" --version "$RELEASE_VERSION"
+          if git rev-parse --verify "refs/tags/v${RELEASE_VERSION}" >/dev/null 2>&1; then
+            echo "Release tag already exists"
+            exit 1
+          fi
+      - uses: peter-evans/create-pull-request@v7
+        id: pr
+        with:
+          branch: release/v${{ inputs.version }}
+          commit-message: Prepare release v${{ inputs.version }}
+          title: Release v${{ inputs.version }}
+          body: Pins the latest published main helper artifacts and checksums. Merge to tag and publish these exact binaries without rebuilding.
+          add-paths: |
+            MODULE.bazel
+            private/helmlock.json
+      - name: Run checks for the bot-created PR
+        if: steps.pr.outputs.pull-request-number
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_VERSION: ${{ inputs.version }}
+        run: gh workflow run ci.yml --ref "release/v${RELEASE_VERSION}"

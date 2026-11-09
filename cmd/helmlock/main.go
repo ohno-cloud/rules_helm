@@ -2,15 +2,17 @@ package main
 
 import (
 	"context"
+	"encoding/hex"
 	"encoding/json"
-	"flag"
 	"fmt"
 	"io"
 	"net/http"
 	"net/url"
 	"os"
+	"regexp"
 	"slices"
 	"strings"
+	"time"
 
 	"github.com/google/go-containerregistry/pkg/authn"
 	"github.com/google/go-containerregistry/pkg/name"
@@ -19,10 +21,10 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-// A subset of the Helm Charts.yaml file
+// A subset of the Helm Chart.yaml file.
 // https://helm.sh/docs/topics/charts
 type Chart struct {
-	//# A list of the chart requirements
+	// A list of the chart requirements.
 	Dependencies []Dependency `yaml:"dependencies" json:"dependencies"`
 }
 
@@ -31,16 +33,15 @@ type Dependency struct {
 	Name string `yaml:"name" json:"name"`
 	// The version of the chart ("1.2.3")
 	Version string `yaml:"version" json:"version"`
-	// The repository URL ("https://example.com/charts") or alias ("@repo-name")
+	// An HTTP(S) or OCI repository URL; aliases are not supported.
 	Repository string `yaml:"repository" json:"repository"`
 }
 
-type Lockfile struct {
-	// Repositories is a map of bazel repository names to lock file contents
-	Repositories map[string]LockEntry `yaml:"repositories" json:"repositories"`
+type resolutionSet struct {
+	Entries map[string]Resolution
 }
 
-type LockEntry struct {
+type Resolution struct {
 	Digest     string   `yaml:"digest" json:"digest"`
 	Urls       []string `yaml:"urls,omitempty" json:"urls,omitempty"`
 	Repository string   `yaml:"repository,omitempty" json:"repository,omitempty"`
@@ -61,59 +62,91 @@ type RepositoryIndex struct {
 
 const helmChartLayerMediaType = "application/vnd.cncf.helm.chart.content.v1.tar+gzip"
 
-var inputFile = flag.String("chart", "", "path to Chart.yaml to generate from")
-var outputFile = flag.String("output", "", "path to write lock file to")
-
 func main() {
-	flag.Parse()
-
-	file, err := os.Open(*inputFile)
-	if err != nil {
-		fmt.Printf("failed to open file: %s - %s", *inputFile, err)
+	if err := run(os.Args[1:], os.Stdout); err != nil {
+		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
-	defer file.Close()
+}
 
-	buf, err := io.ReadAll(file)
+const protocolVersion = 1
+
+// Request and Response form the extension-time protocol, not a source lockfile.
+type Request struct {
+	Protocol     int          `json:"protocol"`
+	Dependencies []Dependency `json:"dependencies"`
+}
+
+type Response struct {
+	Protocol     int          `json:"protocol"`
+	Dependencies []Dependency `json:"dependencies,omitempty"`
+	Resolutions  []Resolution `json:"resolutions,omitempty"`
+}
+
+func run(args []string, out io.Writer) error {
+	if len(args) != 2 || (args[0] != "inspect" && args[0] != "resolve") {
+		return fmt.Errorf("usage: helmlock inspect <Chart.yaml> | helmlock resolve <request.json>")
+	}
+	buf, err := os.ReadFile(args[1])
 	if err != nil {
-		fmt.Printf("failed read file: %s", err)
-		os.Exit(2)
+		return err
 	}
-
-	var chart Chart
-	if err = yaml.Unmarshal(buf, &chart); err != nil {
-		fmt.Printf("failed unmarshal file: %s", err)
-		os.Exit(3)
-	}
-
-	lock, err := chart.GenerateLockFile(context.Background(), http.DefaultClient)
-	if err != nil {
-		fmt.Printf("failed to generate lock file: %s", err)
-		fmt.Fprintf(os.Stderr, "failed to generate lock file: %s", err)
-		os.Exit(4)
-	}
-
-	lockBuf, err := json.MarshalIndent(lock, "", "  ")
-	if err != nil {
-		fmt.Printf("failed to marshal lock file to json: %s", err)
-		os.Exit(5)
-	}
-
-	if *outputFile == "" {
-		fmt.Printf("%s", lockBuf)
+	response := Response{Protocol: protocolVersion}
+	if args[0] == "inspect" {
+		var chart Chart
+		if err := yaml.Unmarshal(buf, &chart); err != nil {
+			return fmt.Errorf("parse Chart.yaml: %w", err)
+		}
+		if err := validateDependencies(chart.Dependencies); err != nil {
+			return err
+		}
+		response.Dependencies = chart.Dependencies
 	} else {
-		out, err := os.OpenFile(*outputFile, os.O_WRONLY|os.O_TRUNC|os.O_CREATE, 0666)
-		if err != nil {
-			fmt.Printf("failed to open output file (%s): %s", *outputFile, err)
-			os.Exit(6)
+		var request Request
+		if err := json.Unmarshal(buf, &request); err != nil {
+			return err
 		}
-		defer out.Close()
-
-		if _, err = out.Write(lockBuf); err != nil {
-			fmt.Printf("failed to write to output file (%s): %s", *outputFile, err)
-			os.Exit(7)
+		if request.Protocol != protocolVersion {
+			return fmt.Errorf("unsupported protocol %d, want %d", request.Protocol, protocolVersion)
+		}
+		if err := validateDependencies(request.Dependencies); err != nil {
+			return err
+		}
+		chart := Chart{Dependencies: request.Dependencies}
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
+		defer cancel()
+		resolved, err := chart.Resolve(ctx, &http.Client{Timeout: 60 * time.Second})
+		if err != nil {
+			return err
+		}
+		// Return request order, independent of Go map iteration and Bazel names.
+		for _, dep := range request.Dependencies {
+			entry, ok := resolved.Entries[resolutionKey(dep.Repository, dep.Name, dep.Version)]
+			if !ok {
+				return fmt.Errorf("missing resolution for %s@%s", dep.Name, dep.Version)
+			}
+			response.Resolutions = append(response.Resolutions, entry)
 		}
 	}
+	return json.NewEncoder(out).Encode(response)
+}
+
+var exactVersion = regexp.MustCompile(`^v?[0-9]+\.[0-9]+\.[0-9]+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?$`)
+
+func validateDependencies(deps []Dependency) error {
+	for _, dep := range deps {
+		if dep.Name == "" || strings.ContainsAny(dep.Name, "/@:") {
+			return fmt.Errorf("invalid chart name %q", dep.Name)
+		}
+		if !exactVersion.MatchString(dep.Version) {
+			return fmt.Errorf("chart %s requires an exact version, got %q", dep.Name, dep.Version)
+		}
+		u, err := url.Parse(dep.Repository)
+		if err != nil || u.Host == "" || (u.Scheme != "https" && u.Scheme != "http" && u.Scheme != "oci") || u.User != nil || u.RawQuery != "" || u.Fragment != "" {
+			return fmt.Errorf("chart %s has an unsupported repository: use an http(s) or oci URL without credentials, query, or fragment", dep.Name)
+		}
+	}
+	return nil
 }
 
 // groupByRepository groups the Dependencies field group repository, then
@@ -123,7 +156,9 @@ func (c *Chart) groupByRepository() map[string]map[string][]string {
 	for _, dep := range c.Dependencies {
 		if repo, ok := output[dep.Repository]; ok {
 			if chart, ok := repo[dep.Name]; ok {
-				chart = append(chart, dep.Version)
+				if !slices.Contains(chart, dep.Version) {
+					chart = append(chart, dep.Version)
+				}
 				repo[dep.Name] = chart
 			} else {
 				repo[dep.Name] = []string{dep.Version}
@@ -140,9 +175,9 @@ func (c *Chart) groupByRepository() map[string]map[string][]string {
 	return output
 }
 
-func (c *Chart) GenerateLockFile(ctx context.Context, client *http.Client) (*Lockfile, error) {
-	lock := &Lockfile{
-		Repositories: make(map[string]LockEntry),
+func (c *Chart) Resolve(ctx context.Context, client *http.Client) (*resolutionSet, error) {
+	lock := &resolutionSet{
+		Entries: make(map[string]Resolution),
 	}
 
 	wants := c.groupByRepository()
@@ -162,8 +197,8 @@ func (c *Chart) GenerateLockFile(ctx context.Context, client *http.Client) (*Loc
 	return lock, nil
 }
 
-func generateHTTPLockEntries(ctx context.Context, client *http.Client, lock *Lockfile, repo string, wantCharts map[string][]string) error {
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, fmt.Sprintf("%s/index.yaml", repo), nil)
+func generateHTTPLockEntries(ctx context.Context, client *http.Client, lock *resolutionSet, repo string, wantCharts map[string][]string) error {
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, fmt.Sprintf("%s/index.yaml", strings.TrimRight(repo, "/")), nil)
 	if err != nil {
 		return fmt.Errorf("failed request from repo %s: %w", repo, err)
 	}
@@ -173,6 +208,9 @@ func generateHTTPLockEntries(ctx context.Context, client *http.Client, lock *Loc
 		return err
 	}
 	defer res.Body.Close()
+	if res.StatusCode != http.StatusOK {
+		return fmt.Errorf("fetch index for %s: HTTP %s", repo, res.Status)
+	}
 
 	buf, err := io.ReadAll(res.Body)
 	if err != nil {
@@ -195,12 +233,25 @@ func generateHTTPLockEntries(ctx context.Context, client *http.Client, lock *Loc
 			for _, version := range chartVersions {
 				seenVersions = append(seenVersions, version.Version)
 				if slices.Contains(wantVersions, version.Version) {
-					lockName := bzlRepoName(repo, chart, lockVersionSuffix(wantVersions, version.Version))
-					lock.Repositories[lockName] = LockEntry{
-						Chart:   chart,
-						Version: version.Version,
-						Digest:  normalizeDigest(version.Digest),
-						Urls:    checkUrls(repo, version.Urls),
+					if foundVersions[version.Version] {
+						return fmt.Errorf("duplicate version %s of chart %s in %s", version.Version, chart, repo)
+					}
+					digest := normalizeDigest(version.Digest)
+					decoded, err := hex.DecodeString(strings.TrimPrefix(digest, "sha256:"))
+					if err != nil || len(decoded) != 32 || !strings.HasPrefix(digest, "sha256:") {
+						return fmt.Errorf("invalid SHA-256 for %s@%s in %s", chart, version.Version, repo)
+					}
+					urls, err := checkUrls(repo, version.Urls)
+					if err != nil {
+						return err
+					}
+					lockName := resolutionKey(repo, chart, version.Version)
+					lock.Entries[lockName] = Resolution{
+						Repository: repo,
+						Chart:      chart,
+						Version:    version.Version,
+						Digest:     digest,
+						Urls:       urls,
 					}
 
 					foundVersions[version.Version] = true
@@ -220,7 +271,7 @@ func generateHTTPLockEntries(ctx context.Context, client *http.Client, lock *Loc
 	return nil
 }
 
-func generateOCILockEntries(ctx context.Context, lock *Lockfile, repo string, wantCharts map[string][]string) error {
+func generateOCILockEntries(ctx context.Context, lock *resolutionSet, repo string, wantCharts map[string][]string) error {
 	for chart, wantVersions := range wantCharts {
 		for _, version := range wantVersions {
 			digest, err := resolveOCIChartDigest(ctx, repo, chart, version)
@@ -228,8 +279,8 @@ func generateOCILockEntries(ctx context.Context, lock *Lockfile, repo string, wa
 				return err
 			}
 
-			lockName := bzlRepoName(repo, chart, lockVersionSuffix(wantVersions, version))
-			lock.Repositories[lockName] = LockEntry{
+			lockName := resolutionKey(repo, chart, version)
+			lock.Entries[lockName] = Resolution{
 				Chart:      chart,
 				Version:    version,
 				Digest:     digest,
@@ -242,7 +293,7 @@ func generateOCILockEntries(ctx context.Context, lock *Lockfile, repo string, wa
 }
 
 func resolveOCIChartDigest(ctx context.Context, repo, chart, version string) (string, error) {
-	ref, err := name.ParseReference(fmt.Sprintf("%s/%s:%s", strings.TrimPrefix(repo, "oci://"), chart, version))
+	ref, err := name.ParseReference(fmt.Sprintf("%s/%s:%s", strings.TrimSuffix(strings.TrimPrefix(repo, "oci://"), "/"), chart, strings.ReplaceAll(version, "+", "_")))
 	if err != nil {
 		return "", fmt.Errorf("parse oci reference for %s/%s:%s: %w", repo, chart, version, err)
 	}
@@ -301,11 +352,9 @@ func resolveOCIChartDigestFromImage(image v1.Image) (string, error) {
 	return "", fmt.Errorf("did not find a helm chart layer in OCI manifest")
 }
 
-func lockVersionSuffix(wantVersions []string, version string) string {
-	if len(wantVersions) > 1 {
-		return version
-	}
-	return ""
+func resolutionKey(repo, chart, version string) string {
+	key, _ := json.Marshal([]string{repo, chart, version})
+	return string(key)
 }
 
 func isOCIRepository(repo string) bool {
@@ -323,45 +372,25 @@ func normalizeDigest(digest string) string {
 	return "sha256:" + digest
 }
 
-func bzlRepoName(repo, chartName, version string) string {
-	segments := make([]string, 0)
-
-	repoURL, err := url.Parse(repo)
-	if err == nil {
-		hostname := strings.ReplaceAll(repoURL.Hostname(), "-", "_")
-		parts := strings.Split(hostname, ".")
-		slices.Reverse(parts)
-		segments = append(segments, parts...)
-
-		if isOCIRepository(repo) {
-			for _, part := range strings.Split(strings.Trim(repoURL.Path, "/"), "/") {
-				if part != "" {
-					segments = append(segments, strings.ReplaceAll(part, "-", "_"))
-				}
-			}
-		}
+func checkUrls(repo string, urls []string) ([]string, error) {
+	if len(urls) == 0 {
+		return nil, fmt.Errorf("no chart archive URLs in %s", repo)
 	}
-
-	segments = append(segments, strings.Split(chartName, "-")...)
-
-	if version != "" {
-		segments = append(segments, strings.Split(version, ".")...)
+	base, err := url.Parse(strings.TrimRight(repo, "/") + "/")
+	if err != nil {
+		return nil, err
 	}
-
-	return strings.Join(segments, "_")
-}
-
-func checkUrls(repo string, urls []string) []string {
 	checked := make([]string, len(urls))
-
-	for idx, url := range urls {
-		if strings.HasPrefix(url, "/") {
-			checked[idx] = fmt.Sprintf("%s%s", repo, url)
-		} else if strings.HasPrefix(strings.ToLower(url), "http") {
-			checked[idx] = url
-		} else {
-			checked[idx] = fmt.Sprintf("%s/%s", repo, url)
+	for idx, raw := range urls {
+		u, err := url.Parse(raw)
+		if err != nil {
+			return nil, err
 		}
+		u = base.ResolveReference(u)
+		if (u.Scheme != "https" && u.Scheme != "http") || u.Host == "" || u.User != nil {
+			return nil, fmt.Errorf("unsupported chart archive URL %q", raw)
+		}
+		checked[idx] = u.String()
 	}
-	return checked
+	return checked, nil
 }

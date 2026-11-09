@@ -1,0 +1,52 @@
+name: CI
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        bazel: [9.0.0, 9.3.2]
+    env:
+      USE_BAZEL_VERSION: ${{ matrix.bazel }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - uses: bazel-contrib/setup-bazel@0.15.0
+        with:
+          bazelisk-cache: true
+          repository-cache: true
+      - run: go test -race ./...
+      - run: bazel run //:gazelle -- -mode=diff
+      - run: bazel test //...
+      - uses: goreleaser/goreleaser-action@v6
+        with:
+          version: v2.12.7
+          args: check
+      - name: Build development helper
+        run: go build -o "$RUNNER_TEMP/helmlock" ./cmd/helmlock
+      - name: Test facts-backed extension
+        run: go test ./tools/extensiontest -resolver "$RUNNER_TEMP/helmlock" -count=1
+      - name: Verify release artifacts
+        if: startsWith(github.head_ref, 'release/v') || startsWith(github.ref_name, 'release/v')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir promoted
+          snapshot=$(jq -r .tag private/helmlock.json)
+          source=$(jq -r .source_commit private/helmlock.json)
+          gh release download "$snapshot" --dir promoted
+          go run ./tools/pinhelmlock verify --artifacts promoted
+          git diff --exit-code "$source" HEAD -- cmd/helmlock go.mod go.sum .goreleaser.yaml
+          chmod +x promoted/helmlock-linux-amd64
+          go test ./tools/extensiontest -resolver "$PWD/promoted/helmlock-linux-amd64" -count=1

@@ -1,0 +1,51 @@
+name: Main prerelease
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: prerelease-${{ github.sha }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - run: go test ./...
+      - name: Select immutable prerelease tag
+        id: snapshot
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          tag="v0.0.0-main.${GITHUB_SHA}"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          if gh release view "$tag" >/dev/null 2>&1; then
+            gh release view "$tag" --json isDraft,isPrerelease,assets --jq '.isDraft == false and .isPrerelease == true and ([.assets[].name] | sort) == ["SHA256SUMS", "helmlock-darwin-amd64", "helmlock-darwin-arm64", "helmlock-linux-amd64", "helmlock-linux-arm64"]' | grep -qx true
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            if git show-ref --verify --quiet "refs/tags/$tag"; then
+              test "$(git rev-list -n 1 "$tag")" = "$GITHUB_SHA"
+            else
+              git tag "$tag" "$GITHUB_SHA"
+            fi
+          fi
+      - uses: goreleaser/goreleaser-action@v6
+        if: steps.snapshot.outputs.exists != 'true'
+        with:
+          version: v2.12.7
+          args: release --clean
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          GORELEASER_CURRENT_TAG: ${{ steps.snapshot.outputs.tag }}

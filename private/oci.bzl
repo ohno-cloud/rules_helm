@@ -39,6 +39,7 @@ def download_oci_chart(ctx, repository, chart, version, output):
     blob_result = ctx.download(
         url = _oci_blob_url(oci, layer["digest"]),
         output = output,
+        sha256 = ctx.attr.sha256.removeprefix("sha256:"),
         allow_fail = True,
         headers = headers,
     )
@@ -164,7 +165,7 @@ def _find_helm_chart_layer(manifest):
     return None
 
 def _oci_manifest_url(oci, version):
-    return "https://{}/v2/{}/manifests/{}".format(oci.registry, oci.repository, version)
+    return "https://{}/v2/{}/manifests/{}".format(oci.registry, oci.repository, version.replace("+", "_"))
 
 def _oci_blob_url(oci, digest):
     return "https://{}/v2/{}/blobs/{}".format(oci.registry, oci.repository, digest)

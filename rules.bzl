@@ -38,19 +38,6 @@ def _helm_repo_chart(ctx):
             output = file_name,
         )
 
-        digest_result = ctx.execute([
-            "shasum",
-            "-a",
-            "256",
-            file_name,
-        ])
-        if digest_result.return_code != 0:
-            fail("failed to calculate sha256 for {}: {}{}".format(file_name, digest_result.stdout, digest_result.stderr))
-
-        actual_digest = "sha256:{}".format(digest_result.stdout.split(" ", 1)[0].strip())
-        if actual_digest != ctx.attr.sha256:
-            fail("sha256 mismatch for {}: got {}, want {}".format(file_name, actual_digest, ctx.attr.sha256))
-
     ctx.report_progress("Templating BUILD file.")
     ctx.template(
         "BUILD.bazel",
