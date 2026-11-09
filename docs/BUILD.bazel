@@ -1,0 +1,59 @@
+load("@bazel_skylib//rules:diff_test.bzl", "diff_test")
+load("@stardoc//stardoc:stardoc.bzl", "stardoc")
+
+stardoc(
+    name = "rules",
+    out = "generated/rules.md",
+    input = "//:helm.bzl",
+    stamp = 0,
+    symbol_names = [
+        "helm_chart",
+        "helm_repo_chart",
+        "helm_template",
+        "helm_toolchain",
+    ],
+    deps = ["//:helm"],
+)
+
+stardoc(
+    name = "extensions",
+    out = "generated/extensions.md",
+    input = "//:extensions.bzl",
+    stamp = 0,
+    deps = ["//:extensions"],
+)
+
+stardoc(
+    name = "providers",
+    out = "generated/providers.md",
+    input = "//:providers.bzl",
+    stamp = 0,
+    deps = ["//:providers"],
+)
+
+filegroup(
+    name = "api",
+    srcs = [
+        ":extensions",
+        ":providers",
+        ":rules",
+    ],
+)
+
+diff_test(
+    name = "rules_test",
+    file1 = "rules.md",
+    file2 = ":rules",
+)
+
+diff_test(
+    name = "extensions_test",
+    file1 = "extensions.md",
+    file2 = ":extensions",
+)
+
+diff_test(
+    name = "providers_test",
+    file1 = "providers.md",
+    file2 = ":providers",
+)

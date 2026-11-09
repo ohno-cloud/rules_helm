@@ -6,10 +6,11 @@ load("//:repo.bzl", "helm_register_toolchains")
 def _helm_configure_impl(_ctx):
     helm_register_toolchains(register = False)
 
-_version = tag_class(attrs = {"version": attr.string()})
+_version = tag_class(attrs = {"version": attr.string(doc = "Reserved for future version selection; the default Helm toolchain version is currently used.")})
 
 helm_configure = module_extension(
     implementation = _helm_configure_impl,
+    doc = "Declare the platform-specific Helm toolchain repositories.",
     tag_classes = {"version": _version},
 )
 
@@ -17,6 +18,9 @@ _RESOLVER = Label("@rules_helm_resolver//:helmlock")
 _PROTOCOL = 1
 
 def _fact_key(repository, chart, version):
+    # Bazel shallow-merges facts and retains them across extension changes.
+    # Use immutable artifact identities with a schema namespace, not generated
+    # repository names, which can change when more versions are requested.
     return json.encode(["helm-resolution-v1", repository, chart, version])
 
 def _run_resolver(ctx, command, input):
@@ -133,6 +137,8 @@ def _helm_deps(ctx):
             sha256 = value["digest"],
         )
 
+    # Facts pin resolution metadata; the repository rules enforce archive hashes.
+    # Reproducible extensions still persist facts, without generated repo specs.
     return ctx.extension_metadata(
         reproducible = True,
         facts = facts,
@@ -140,17 +146,21 @@ def _helm_deps(ctx):
         root_module_direct_dev_deps = [name for name, dev in direct.items() if dev],
     )
 
-_from_file = tag_class(attrs = {"chart": attr.label(mandatory = True)})
+_from_file = tag_class(
+    doc = "Read exact chart dependencies from an ordinary Chart.yaml, resolving only entries missing from Bazel facts.",
+    attrs = {"chart": attr.label(mandatory = True, doc = "Source Chart.yaml containing Helm dependency declarations.")},
+)
 _chart = tag_class(attrs = {
-    "name": attr.string(mandatory = True),
-    "urls": attr.string_list(),
-    "repository": attr.string(),
-    "digest": attr.string(mandatory = True),
-    "chart": attr.string(mandatory = True),
-    "version": attr.string(mandatory = True),
+    "name": attr.string(mandatory = True, doc = "Explicit Bazel repository name for the chart."),
+    "urls": attr.string_list(doc = "HTTP(S) URLs of the chart archive; mutually exclusive with repository."),
+    "repository": attr.string(doc = "OCI repository URL without the chart name; mutually exclusive with urls."),
+    "digest": attr.string(mandatory = True, doc = "Chart archive SHA-256, prefixed with sha256:."),
+    "chart": attr.string(mandatory = True, doc = "Published chart name."),
+    "version": attr.string(mandatory = True, doc = "Exact chart version."),
 })
 
 helm_deps = module_extension(
     implementation = _helm_deps,
+    doc = "Expose HTTP and OCI Helm charts as Bazel repositories. from_file dependencies are pinned per repository, chart, and version in MODULE.bazel.lock facts; chart tags supply explicit pins.",
     tag_classes = {"from_file": _from_file, "chart": _chart},
 )

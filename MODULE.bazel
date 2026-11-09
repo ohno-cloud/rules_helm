@@ -9,12 +9,16 @@ helmlock_repository = use_repo_rule("//private:resolver.bzl", "helmlock_reposito
 helmlock_repository(name = "rules_helm_resolver")
 
 bazel_dep(name = "platforms", version = "1.1.0")
-bazel_dep(name = "bazel_skylib", version = "1.8.2")
+bazel_dep(name = "bazel_skylib", version = "1.9.0")
 
 # Development-only tooling for building the resolver, tests, and generated BUILD files.
 bazel_dep(name = "rules_go", version = "0.61.0", dev_dependency = True)
-bazel_dep(name = "gazelle", version = "0.45.0", dev_dependency = True)
+bazel_dep(name = "gazelle", version = "0.47.0", dev_dependency = True)
 bazel_dep(name = "bazel_skylib_gazelle_plugin", version = "1.7.1", dev_dependency = True)
+bazel_dep(name = "stardoc", version = "0.8.1", dev_dependency = True)
+
+# Use prebuilt protoc toolchains for Stardoc instead of compiling protoc locally.
+bazel_dep(name = "protobuf", version = "36.2", dev_dependency = True)
 
 helm_configure = use_extension("@rules_helm//:extensions.bzl", "helm_configure")
 use_repo(helm_configure, "sh_helm_get_toolchains")
