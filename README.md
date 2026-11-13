@@ -85,9 +85,9 @@ helm_show_crds(
 
 Run `bazel build //:cert_manager_crds` to write the chart's CRDs to
 `bazel-bin/cert-manager-crds.yaml`. Without `out`, the file is named
-`<target name>.crds.yaml`. This extracts the raw CRDs, without applying values or
-rendering templates; charts without CRDs produce an empty file. For CRDs bundled
-with rendered resources instead, use `helm_template(include_crds = True)`.
+`<target name>.crds.yaml`. Only CRDs packaged under `crds/` are included; charts
+that template their CRDs may produce an empty file. See
+[Helm's CRD documentation](https://helm.sh/docs/chart_best_practices/custom_resource_definitions/).
 
 ## Updating dependencies
 
