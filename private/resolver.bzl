@@ -30,6 +30,10 @@ def _resolver_impl(ctx):
         ctx.symlink(executable, "helmlock")
         ctx.file("BUILD.bazel", 'exports_files(["helmlock"], visibility = ["//visibility:public"])\n')
 
+    # The development override points outside the repository and must stay local.
+    # Released executables are pinned by digest; Bazel also keys repos by host OS/arch.
+    return ctx.repo_metadata(reproducible = not local)
+
 helmlock_repository = repository_rule(
     implementation = _resolver_impl,
     attrs = {"_metadata": attr.label(default = "//private:helmlock.json")},

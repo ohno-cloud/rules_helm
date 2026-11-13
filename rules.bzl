@@ -1,4 +1,4 @@
-"""Rules for declaring, downloading, and rendering Helm charts."""
+"""Rules for declaring, downloading, rendering, and inspecting Helm charts."""
 
 load("//private:oci.bzl", "download_oci_chart")
 load(":providers.bzl", "HelmChartInfo")
@@ -8,6 +8,10 @@ load(":providers.bzl", "HelmChartInfo")
 # ==============================================================================
 
 def _helm_repo_chart(ctx):
+    sha256 = _strip_sha256_prefix(ctx.attr.sha256)
+    if len(sha256) != 64 or any([c not in "0123456789abcdefABCDEF" for c in sha256.elems()]):
+        fail("helm_repo_chart sha256 must be a nonempty SHA-256 digest (64 hexadecimal characters, optionally prefixed with sha256:)")
+
     urls = ctx.attr.urls
     file_name = "{chart}-{version}.tgz".format(
         chart = ctx.attr.chart,
@@ -25,7 +29,7 @@ def _helm_repo_chart(ctx):
         ctx.download(
             url = urls,
             output = file_name,
-            sha256 = _strip_sha256_prefix(ctx.attr.sha256),
+            sha256 = sha256,
             auth = ctx.attr.auth,
         )
     else:
@@ -49,6 +53,7 @@ def _helm_repo_chart(ctx):
             "{src}": file_name,
         },
     )
+    return ctx.repo_metadata(reproducible = True)
 
 _helm_repo_chart_attrs = {
     "repository": attr.string(
@@ -73,7 +78,7 @@ _helm_repo_chart_attrs = {
         mandatory = False,
     ),
     "sha256": attr.string(
-        doc = "A SHA256 of the chart file.",
+        doc = "The chart archive SHA-256: 64 hexadecimal characters, optionally prefixed with sha256:. Empty or invalid digests are rejected.",
         mandatory = True,
     ),
     "auth": attr.string_dict(
@@ -238,5 +243,55 @@ helm_template = rule(
     attrs = dict(
         _helm_template_attrs.items(),
     ),
+    toolchains = ["//:toolchain_type"],
+)
+
+# ==============================================================================
+# Showing chart CRDs
+# ==============================================================================
+
+def _helm_show_crds_impl(ctx):
+    if HelmChartInfo not in ctx.attr.chart:
+        fail("helm_show_crds chart must provide HelmChartInfo; wrap local archives with helm_chart")
+    helm = ctx.toolchains["//:toolchain_type"].helm.tool[DefaultInfo].files_to_run
+    crds = ctx.actions.declare_file(ctx.attr.out or ctx.label.name + ".crds.yaml")
+    args = ctx.actions.args()
+    args.add(crds.path)
+    args.add(helm.executable.path)
+    args.add_all(["show", "crds"])
+    args.add(ctx.file.chart)
+    args.add_all(ctx.attr.arguments)
+
+    # Helm writes to stdout. Pass paths and flags positionally rather than
+    # interpolating shell commands, so spaces and shell metacharacters stay literal.
+    ctx.actions.run_shell(
+        command = 'out="$1"\nshift\n"$@" > "$out"',
+        arguments = [args],
+        inputs = [ctx.file.chart],
+        tools = [helm],
+        outputs = [crds],
+        toolchain = "//:toolchain_type",
+        mnemonic = "HelmShowCRDs",
+        progress_message = "Extracting Helm CRDs from {}".format(ctx.attr.chart.label),
+    )
+    return [DefaultInfo(files = depset([crds]))]
+
+helm_show_crds = rule(
+    implementation = _helm_show_crds_impl,
+    doc = "Extract a chart's unrendered CRDs with helm show crds using the registered Helm toolchain. Charts without CRDs produce an empty file. This does not render templates or apply values.",
+    attrs = {
+        "chart": attr.label(
+            doc = "The chart archive to inspect, exposed by helm_repo_chart or helm_chart.",
+            providers = [HelmChartInfo],
+            allow_single_file = True,
+            mandatory = True,
+        ),
+        "out": attr.string(
+            doc = "Output YAML file name. Defaults to `<target name>.crds.yaml`.",
+        ),
+        "arguments": attr.string_list(
+            doc = "Additional arguments passed to helm show crds.",
+        ),
+    },
     toolchains = ["//:toolchain_type"],
 )

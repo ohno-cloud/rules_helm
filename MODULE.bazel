@@ -1,7 +1,7 @@
 module(
     name = "rules_helm",
     version = "0.5.0",
-    bazel_compatibility = [">=9.0.0"],
+    bazel_compatibility = [">=9.1.0"],
 )
 
 helmlock_repository = use_repo_rule("//private:resolver.bzl", "helmlock_repository")

@@ -13,7 +13,7 @@ def _helm_toolchain(ctx):
 
 helm_toolchain = rule(
     implementation = _helm_toolchain,
-    doc = "Wrap a Helm executable for use by helm_template's toolchain.",
+    doc = "Wrap a Helm executable for use by helm_template and helm_show_crds.",
     attrs = {
         "src": attr.label(
             doc = "The helm binary",

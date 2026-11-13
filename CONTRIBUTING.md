@@ -1,6 +1,6 @@
 # Contributing
 
-See [README.md](README.md) for using the rules. Development requires Bazel 9+
+See [README.md](README.md) for using the rules. Development requires Bazel 9.1+
 (preferably through Bazelisk); Bazel provides the Go SDK and other build tools.
 
 ## Build and test
@@ -19,7 +19,7 @@ the generated BUILD changes alongside their sources. To check without editing:
 bazel run //:gazelle -- -mode=diff
 ```
 
-The full nested-Bazel integration test is opt-in. See its
+The nested-Bazel integration tests are opt-in. See their
 [test instructions](tools/extensiontest/README.md) for running it with a local or
 released resolver. With a local Go installation, `go test -race ./...` also runs
 the unit tests with the race detector.
