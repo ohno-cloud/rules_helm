@@ -214,68 +214,6 @@
         }
       }
     },
-    "@@rules_helm+//:extensions.bzl%helm_configure": {
-      "general": {
-        "bzlTransitiveDigest": "tnJ25jlnn3+5L5y25GkDdp2Kkg4zp3psRAL9G3ItLak=",
-        "usagesDigest": "q59aDC6ygiUXn20K4bLeMCPP4u1CyFcMZgZRRqBSu7U=",
-        "recordedInputs": [
-          "REPO_MAPPING:rules_helm+,bazel_tools bazel_tools",
-          "REPO_MAPPING:rules_helm+,rules_helm_resolver rules_helm++helmlock_repository+rules_helm_resolver"
-        ],
-        "generatedRepoSpecs": {
-          "sh_helm_get_linux-amd64": {
-            "repoRuleId": "@@bazel_tools//tools/build_defs/repo:http.bzl%http_archive",
-            "attributes": {
-              "sha256": "f8180838c23d7c7d797b208861fecb591d9ce1690d8704ed1e4cb8e2add966c1",
-              "urls": [
-                "https://get.helm.sh/helm-v3.18.4-linux-amd64.tar.gz"
-              ],
-              "strip_prefix": "linux-amd64",
-              "build_file_content": "\nload(\"@rules_helm//:helm.bzl\", \"helm_toolchain\")\npackage(default_visibility = [\"//visibility:public\"])\n\nhelm_toolchain(\n    name = \"helm_tools\",\n    src = \":helm\",\n)\n"
-            }
-          },
-          "sh_helm_get_linux-arm64": {
-            "repoRuleId": "@@bazel_tools//tools/build_defs/repo:http.bzl%http_archive",
-            "attributes": {
-              "sha256": "c0a45e67eef0c7416a8a8c9e9d5d2d30d70e4f4d3f7bea5de28241fffa8f3b89",
-              "urls": [
-                "https://get.helm.sh/helm-v3.18.4-linux-arm64.tar.gz"
-              ],
-              "strip_prefix": "linux-arm64",
-              "build_file_content": "\nload(\"@rules_helm//:helm.bzl\", \"helm_toolchain\")\npackage(default_visibility = [\"//visibility:public\"])\n\nhelm_toolchain(\n    name = \"helm_tools\",\n    src = \":helm\",\n)\n"
-            }
-          },
-          "sh_helm_get_darwin-amd64": {
-            "repoRuleId": "@@bazel_tools//tools/build_defs/repo:http.bzl%http_archive",
-            "attributes": {
-              "sha256": "860a7238285b44b5dc7b3c4dad6194316885d7015d77c34e23177e0e9554af8f",
-              "urls": [
-                "https://get.helm.sh/helm-v3.18.4-darwin-amd64.tar.gz"
-              ],
-              "strip_prefix": "darwin-amd64",
-              "build_file_content": "\nload(\"@rules_helm//:helm.bzl\", \"helm_toolchain\")\npackage(default_visibility = [\"//visibility:public\"])\n\nhelm_toolchain(\n    name = \"helm_tools\",\n    src = \":helm\",\n)\n"
-            }
-          },
-          "sh_helm_get_darwin-arm64": {
-            "repoRuleId": "@@bazel_tools//tools/build_defs/repo:http.bzl%http_archive",
-            "attributes": {
-              "sha256": "041849741550b20710d7ad0956e805ebd960b483fe978864f8e7fdd03ca84ec8",
-              "urls": [
-                "https://get.helm.sh/helm-v3.18.4-darwin-arm64.tar.gz"
-              ],
-              "strip_prefix": "darwin-arm64",
-              "build_file_content": "\nload(\"@rules_helm//:helm.bzl\", \"helm_toolchain\")\npackage(default_visibility = [\"//visibility:public\"])\n\nhelm_toolchain(\n    name = \"helm_tools\",\n    src = \":helm\",\n)\n"
-            }
-          },
-          "sh_helm_get_toolchains": {
-            "repoRuleId": "@@rules_helm+//private:toolchain_repo.bzl%toolchains_repo",
-            "attributes": {
-              "user_repository_name": "sh_helm_get"
-            }
-          }
-        }
-      }
-    },
     "@@rules_kotlin+//src/main/starlark/core/repositories:bzlmod_setup.bzl%rules_kotlin_extensions": {
       "general": {
         "bzlTransitiveDigest": "WDuVCwqV73DvcHB5Of+02lhUZgPxr9MqtpvMRyUi0eQ=",
@@ -543,14 +481,14 @@
         ],
         "version": "v1.11.0"
       },
-      "[\"helm-resolution-v1\",\"https://charts.jetstack.io\",\"cert-manager\",\"v1.12.0\"]": {
+      "[\"helm-resolution-v1\",\"https://charts.jetstack.io\",\"cert-manager\",\"v1.21.3\"]": {
         "chart": "cert-manager",
-        "digest": "sha256:1435a289262218111685cf311eb6b57f0e8d788abd4e0b513029043df68c17ae",
+        "digest": "sha256:9ec67938b2981d8b333af61b3fcf53e26b4f6f5deb7ccda3de4ea116bb373a17",
         "repository": "https://charts.jetstack.io",
         "urls": [
-          "https://charts.jetstack.io/charts/cert-manager-v1.12.0.tgz"
+          "https://charts.jetstack.io/charts/cert-manager-v1.21.3.tgz"
         ],
-        "version": "v1.12.0"
+        "version": "v1.21.3"
       },
       "[\"helm-resolution-v1\",\"https://metallb.github.io/metallb\",\"metallb\",\"0.15.2\"]": {
         "chart": "metallb",
@@ -569,6 +507,12 @@
           "https://github.com/openbao/openbao-helm/releases/download/openbao-0.8.1/openbao-0.8.1.tgz"
         ],
         "version": "0.8.1"
+      },
+      "[\"helm-resolution-v1\",\"oci://ghcr.io/helmforgedev/helm\",\"envoy-gateway-crds\",\"1.0.0\"]": {
+        "chart": "envoy-gateway-crds",
+        "digest": "sha256:3f600e32911e0c9e1e67ecf30cad68c533632fa46e3fbc8c45d96284218b2f0b",
+        "repository": "oci://ghcr.io/helmforgedev/helm",
+        "version": "1.0.0"
       },
       "[\"helm-resolution-v1\",\"oci://ghcr.io/woodpecker-ci/helm\",\"woodpecker\",\"3.6.4\"]": {
         "chart": "woodpecker",

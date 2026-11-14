@@ -2,6 +2,10 @@ load("@rules_go//go:def.bzl", "go_test")
 
 go_test(
     name = "extensiontest_test",
-    srcs = ["main_test.go"],
+    srcs = [
+        "cache_test.go",
+        "crds_test.go",
+        "main_test.go",
+    ],
     tags = ["local"],
 )

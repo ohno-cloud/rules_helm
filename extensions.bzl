@@ -1,10 +1,11 @@
-"""Helm toolchains and facts-backed dependency resolution for Bazel 9+."""
+"""Helm toolchains and facts-backed dependency resolution for Bazel 9.1+."""
 
 load("//:helm.bzl", "helm_repo_chart")
 load("//:repo.bzl", "helm_register_toolchains")
 
-def _helm_configure_impl(_ctx):
+def _helm_configure_impl(ctx):
     helm_register_toolchains(register = False)
+    return ctx.extension_metadata(reproducible = True)
 
 _version = tag_class(attrs = {"version": attr.string(doc = "Reserved for future version selection; the default Helm toolchain version is currently used.")})
 

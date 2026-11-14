@@ -1,1 +1,9 @@
+load("@rules_helm//:helm.bzl", "helm_show_crds")
+
 exports_files(["Chart.yaml"])
+
+helm_show_crds(
+    name = "enovy-gateway-crds",
+    chart = "@io_ghcr_helmforgedev_helm_envoy_gateway_crds//:chart",
+    out = "enovy-gateway-crds.yaml",
+)

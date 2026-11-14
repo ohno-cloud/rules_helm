@@ -10,7 +10,7 @@ helm_template(
 )
 
 helm_template(
-    name = "alertmanager_1_11_0",
+    name = "cert-manager_1_11_0",
     chart = "@io_jetstack_charts_cert_manager_v1_11_0//:chart",
     generate_name = "example",
     include_crds = True,
@@ -19,8 +19,8 @@ helm_template(
 )
 
 helm_template(
-    name = "alertmanager_1_12_0",
-    chart = "@io_jetstack_charts_cert_manager_v1_12_0//:chart",
+    name = "cert-manager_1_12_0",
+    chart = "@io_jetstack_charts_cert_manager_v1_21_3//:chart",
     generate_name = "example",
     include_crds = True,
     namespace = "example",

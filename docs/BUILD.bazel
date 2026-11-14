@@ -9,6 +9,7 @@ stardoc(
     symbol_names = [
         "helm_chart",
         "helm_repo_chart",
+        "helm_show_crds",
         "helm_template",
         "helm_toolchain",
     ],

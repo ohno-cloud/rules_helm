@@ -23,10 +23,11 @@ helm_deps.chart(
 use_repo(
     helm_deps,
     "io_docker_registry_1_envoyproxy_gateway_helm",
+    "io_ghcr_helmforgedev_helm_envoy_gateway_crds",
     "io_ghcr_woodpecker_ci_helm_woodpecker",
     "io_github_metallb_metallb",
     "io_github_openbao_openbao",
     "io_jetstack_charts_cert_manager_v1_11_0",
-    "io_jetstack_charts_cert_manager_v1_12_0",
+    "io_jetstack_charts_cert_manager_v1_21_3",
     "manual_chart_alertmanager",
 )

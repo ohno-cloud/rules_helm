@@ -4,7 +4,7 @@ Bazel rules for downloading and templating Helm charts. Use the rendered YAML
 directly, or transform it with tools such as `rules_jsonnet`. Publishing charts
 and deploying to Kubernetes are outside this ruleset's scope.
 
-**Requirements:** Bazel 9 or newer. The resolver uses prebuilt binaries for Linux
+**Requirements:** Bazel 9.1 or newer. The resolver uses prebuilt binaries for Linux
 and macOS, on amd64 and arm64; consumers do not need Go installed. For an
 unreleased checkout, see the [local resolver setup](cmd/helmlock/README.md#build-and-use-a-local-resolver).
 
@@ -69,6 +69,26 @@ bazel build //:cert_manager
 
 The rendered manifests are written to `bazel-bin/cert-manager.yaml`.
 
+### Extract CRDs without rendering templates
+
+Use `helm_show_crds` to run `helm show crds` on the same chart:
+
+```starlark
+load("@rules_helm//:helm.bzl", "helm_show_crds")
+
+helm_show_crds(
+    name = "cert_manager_crds",
+    chart = "@cert_manager//:chart",
+    out = "cert-manager-crds.yaml",
+)
+```
+
+Run `bazel build //:cert_manager_crds` to write the chart's CRDs to
+`bazel-bin/cert-manager-crds.yaml`. Without `out`, the file is named
+`<target name>.crds.yaml`. Only CRDs packaged under `crds/` are included; charts
+that template their CRDs may produce an empty file. See
+[Helm's CRD documentation](https://helm.sh/docs/chart_best_practices/custom_resource_definitions/).
+
 ## Updating dependencies
 
 Change versions in `Chart.yaml`, then run:
@@ -85,6 +105,39 @@ Resolved URLs and chart archive digests are stored as facts in
 `MODULE.bazel.lock`; there is no separate chart lockfile. Existing resolutions are
 reused, and Bazel verifies downloaded archives against their pinned SHA-256.
 Republishing an OCI version tag with different chart content fails verification.
+
+## Repository caching and remote execution
+
+Chart repositories, generated toolchain definitions, and the released resolver
+declare their contents reproducible. Helm binary archives use Bazel's pinned
+`http_archive` rule, which already supports repository contents caching.
+
+To share fetched repositories through your remote cache or RBE service, add this
+to the **consuming workspace's** `.bazelrc`:
+
+```bazelrc
+startup --experimental_remote_repo_contents_cache
+
+# Use your existing --remote_cache or --remote_executor endpoint.
+build --remote_cache=grpcs://your-cache
+```
+
+Bazel 9.1+ supports the tracked file and environment inputs used by these rules.
+For Bazel 9.1, use a gRPC cache/RBE endpoint; HTTP repository caching requires
+Bazel 9.2+ because of an upstream cache-initialization limitation.
+Repository rules still execute on the local host on a cache miss; this feature
+shares their results, not their execution. Cache population requires the Bazel
+client to have write access to the remote action cache. If only trusted CI can
+write, use CI to populate the cache for other clients. Cache access also grants
+access to cached private charts, so apply the appropriate access controls.
+
+OCI token responses and temporary manifests are removed before a repository is
+cached; only the hash-verified chart and generated BUILD file are retained.
+Credential paths and files remain tracked inputs, so differing credential paths
+or contents can limit cache sharing between hosts. The host-local
+`RULES_HELM_RESOLVER` development override is not marked reproducible and is not
+eligible for repository contents caching. Resolution facts in `MODULE.bazel.lock`
+are still needed: caching repository contents does not replace dependency pins.
 
 ## Versions and repository names
 

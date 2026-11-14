@@ -36,6 +36,7 @@ type fixture struct {
 	t         *testing.T
 	workspace string
 	resolver  string
+	startup   []string
 	module    string
 	repo      string
 	indexes   atomic.Int64
@@ -63,7 +64,8 @@ func (f *fixture) command(args ...string) ([]byte, error) {
 	f.t.Helper()
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
 	defer cancel()
-	args = append([]string{"--output_user_root=" + filepath.Join(filepath.Dir(f.workspace), "bazel-root")}, args...)
+	prefix := append([]string{"--output_user_root=" + filepath.Join(filepath.Dir(f.workspace), "bazel-root")}, f.startup...)
+	args = append(prefix, args...)
 	cmd := exec.CommandContext(ctx, "bazel", args...)
 	cmd.Dir = f.workspace
 	output, err := cmd.CombinedOutput()

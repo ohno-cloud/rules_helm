@@ -1,16 +1,5 @@
 # CI and releases
 
-## CI
-
-[`ci.yml`](ci.yml) tests Bazel 9.0.0 and 9.3.2. It runs Go race tests, checks
-Gazelle output, explicitly checks Stardoc freshness with `bazel test //docs:all`,
-and runs the Bazel suite and opt-in integration test. Release-preparation PRs are
-also tested with the published helper binary they select.
-
-The Stardoc checks compare committed reference pages against fresh, unstamped
-output. Update them using the [contribution instructions](../../CONTRIBUTING.md#api-documentation),
-not by editing generated Markdown directly.
-
 ## Releases
 
 GoReleaser ([configuration](../../.goreleaser.yaml)) builds helpers for Linux and

@@ -29,9 +29,11 @@ def download_oci_chart(ctx, repository, chart, version, output):
         headers = dict(headers, Accept = _OCI_ACCEPT_HEADER),
     )
     if not manifest_result.success:
-        fail("failed to fetch OCI manifest for {}:{}: {}".format(oci.reference, version, manifest_result.error))
+        fail("failed to fetch OCI manifest for {}:{}: {}".format(oci.reference, version, getattr(manifest_result, "error", "download failed; see downloader warnings")))
 
     manifest = json.decode(ctx.read(manifest_file))
+    # Only the hash-verified chart belongs in the cached repository, not a mutable tag's manifest.
+    ctx.delete(manifest_file)
     layer = _find_helm_chart_layer(manifest)
     if layer == None:
         fail("did not find helm chart layer in OCI manifest for {}:{}".format(oci.reference, version))
@@ -44,7 +46,7 @@ def download_oci_chart(ctx, repository, chart, version, output):
         headers = headers,
     )
     if not blob_result.success:
-        fail("failed to download OCI chart blob for {}:{}: {}".format(oci.reference, version, blob_result.error))
+        fail("failed to download OCI chart blob for {}:{}: {}".format(oci.reference, version, getattr(blob_result, "error", "download failed; see downloader warnings")))
 
 def _parse_oci_repository(repository, chart):
     stripped = repository[len("oci://"):]
@@ -93,9 +95,11 @@ def _oci_auth_headers(ctx, oci, challenge):
         headers = token_headers,
     )
     if not token_result.success:
-        fail("failed to fetch OCI auth token for registry {}: {}".format(oci.registry, token_result.error))
+        fail("failed to fetch OCI auth token for registry {}: {}".format(oci.registry, getattr(token_result, "error", "download failed; see downloader warnings")))
 
     token_response = json.decode(ctx.read(token_file))
+    # Never leave credentials in repository contents: reproducible repos can be uploaded to a cache.
+    ctx.delete(token_file)
     token = token_response.get("token", token_response.get("access_token", ""))
     if not token:
         fail("OCI auth token response for registry {} did not contain a token".format(oci.registry))
@@ -116,9 +120,11 @@ def _basic_auth_headers_for_registry(ctx, registry):
     return {}
 
 def _read_docker_config(ctx):
-    env = ctx.os.environ
+    env = {name: ctx.getenv(name, "") for name in ["REGISTRY_AUTH_FILE", "XDG_RUNTIME_DIR", "HOME", "DOCKER_CONFIG"]}
     for candidate in _auth_file_candidates(env):
         config_file = ctx.path(candidate)
+        # Track absent higher-priority files too, so adding credentials invalidates the repo.
+        ctx.watch(config_file)
         if config_file.exists:
             return json.decode(ctx.read(config_file))
 

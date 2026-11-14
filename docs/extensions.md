@@ -1,6 +1,6 @@
 <!-- Generated with Stardoc: http://skydoc.bazel.build -->
 
-Helm toolchains and facts-backed dependency resolution for Bazel 9+.
+Helm toolchains and facts-backed dependency resolution for Bazel 9.1+.
 
 <a id="helm_configure"></a>
 
