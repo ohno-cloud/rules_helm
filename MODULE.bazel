@@ -14,7 +14,7 @@ bazel_dep(name = "bazel_skylib", version = "1.9.0")
 # Development-only tooling for building the resolver, tests, and generated BUILD files.
 bazel_dep(name = "rules_go", version = "0.61.0", dev_dependency = True)
 bazel_dep(name = "gazelle", version = "0.47.0", dev_dependency = True)
-bazel_dep(name = "bazel_skylib_gazelle_plugin", version = "1.7.1", dev_dependency = True)
+bazel_dep(name = "bazel_skylib_gazelle_plugin", version = "1.9.2", dev_dependency = True)
 bazel_dep(name = "stardoc", version = "0.8.1", dev_dependency = True)
 
 # Use prebuilt protoc toolchains for Stardoc instead of compiling protoc locally.
